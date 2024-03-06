@@ -118,6 +118,7 @@ public class CustomCharPredictionController extends AbstractPredictionController
         this.positionByGrid.clear();
         this.predictionKeyByGrid.clear();
         Set<GridComponentI> grids = this.predictionOptions.keySet();
+        /*
         for (GridComponentI grid : grids) {
             //Initialize grid by grid
             HashSet<Character> acceptedChars = new HashSet<>();
@@ -137,6 +138,7 @@ public class CustomCharPredictionController extends AbstractPredictionController
             }
             this.allAcceptedCharacters.addAll(acceptedChars);
         }
+         */
     }
 
     @Override

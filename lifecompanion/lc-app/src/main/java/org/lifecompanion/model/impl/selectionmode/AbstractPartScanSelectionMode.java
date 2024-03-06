@@ -27,6 +27,7 @@ import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
 import org.lifecompanion.model.api.selectionmode.SelectionModeI;
 import org.lifecompanion.model.impl.configurationcomponent.GridComponentInformation;
+import org.lifecompanion.model.impl.textprediction.aac4all.Aac4AllController;
 import org.lifecompanion.ui.selectionmode.AbstractPartScanSelectionModeView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,10 +97,15 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
         }
     }
 
+    private void setSelectedComponentToScan(ComponentToScanI currentComponentToScan) {
+        this.selectedComponentToScan = currentComponentToScan;
+        Aac4AllController.INSTANCE.partScanComponentChanged(currentGrid.get(), selectedComponentToScan);
+    }
+
     @Override
     protected void scannedGridChanged(final GridComponentI gridP) {
         super.scannedGridChanged(gridP);
-        this.selectedComponentToScan = null;
+        this.setSelectedComponentToScan(null);
     }
 
     @Override
@@ -135,7 +141,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
             this.primaryIndex = 0;
             this.secondaryIndex = 0;
             this.currentComponentToScan = this.components.get(this.primaryIndex);
-            this.selectedComponentToScan = null;
+            this.setSelectedComponentToScan(null);
             this.updateCurrentComponent(true);
         }
     }
@@ -150,7 +156,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
         this.primaryIndex = 0;
         this.secondaryIndex = 0;
         this.currentComponentToScan = null;
-        this.selectedComponentToScan = null;
+        this.setSelectedComponentToScan(null);
         this.deselectAndUpdateCurrentPartOnNextPlay = false;
     }
     //========================================================================
@@ -163,7 +169,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
      */
     private void deselectCurrentPart() {
         if (this.selectedComponentToScan != null) {
-            this.selectedComponentToScan = null;
+            this.setSelectedComponentToScan(null);
             this.secondaryIndex = 0;
             this.timesInSamePart = 0;
             this.currentPart.set(null);
@@ -177,10 +183,9 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
     protected boolean fireActionNoCurrentPart() {
         AbstractPartScanSelectionMode.LOGGER.debug("Current selected line {}", this.selectedComponentToScan);
         if (this.selectedComponentToScan == null) {
-            this.selectedComponentToScan = this.components.get(this.primaryIndex);
+            this.setSelectedComponentToScan(this.components.get(this.primaryIndex));
             this.secondaryIndex = 0;
             this.timesInSamePart = 0;
-
 
             // If the current line contains only one element :
             // - if it doesn't contain OVER actions : will return true as the actions should be directly executed
@@ -229,7 +234,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
                     this.currentComponentToScan = componentsInside;
                     //Select part inside if needed
                     if (componentsInside.getComponents().size() > 1) {
-                        this.selectedComponentToScan = componentsInside;
+                        this.setSelectedComponentToScan(componentsInside);
                         this.currentPart.set(part);
                         this.secondaryIndex = j;
                     }

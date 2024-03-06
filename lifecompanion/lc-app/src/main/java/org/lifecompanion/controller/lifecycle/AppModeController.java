@@ -53,6 +53,7 @@ import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.profile.LCConfigurationDescriptionI;
 import org.lifecompanion.model.api.profile.LCProfileI;
 import org.lifecompanion.model.impl.imagedictionary.ImageDictionaries;
+import org.lifecompanion.model.impl.textprediction.aac4all.Aac4AllController;
 import org.lifecompanion.ui.UseModeScene;
 import org.lifecompanion.ui.UseModeStage;
 import org.lifecompanion.util.javafx.FXThreadUtils;
@@ -184,6 +185,7 @@ public enum AppModeController {
             VoiceSynthesizerController.INSTANCE, //
             NoteKeyController.INSTANCE, //
             ImageDictionaries.INSTANCE,//
+            Aac4AllController.INSTANCE,//
             GlobalKeyEventController.INSTANCE,//
             WinAutoHotKeyKeyboardReceiverController.INSTANCE, //
             SelectionModeController.INSTANCE//Selection in last, because it will start scanning
