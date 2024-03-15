@@ -1,5 +1,6 @@
 package org.lifecompanion.model.impl.textprediction.aac4all;
 
+import org.lifecompanion.controller.textcomponent.WritingStateController;
 import org.lifecompanion.model.api.configurationcomponent.GridComponentI;
 import org.lifecompanion.model.api.configurationcomponent.GridPartComponentI;
 import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
@@ -7,12 +8,11 @@ import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
 import org.lifecompanion.model.impl.configurationcomponent.keyoption.CustomCharKeyOption;
+import org.lifecompanion.model.impl.textprediction.charprediction.LCCharPredictor;
 import org.lifecompanion.util.javafx.FXThreadUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public enum Aac4AllController implements ModeListenerI {
     INSTANCE;
@@ -52,6 +52,10 @@ public enum Aac4AllController implements ModeListenerI {
                         }
                     }
                 }
+                HashSet<Character> collect = new HashSet<>("abcdefgj".chars().mapToObj(c -> (char) c).collect(Collectors.toSet()));
+                String textBeforeCaret = WritingStateController.INSTANCE.textBeforeCaretProperty().get();
+                List<Character> predict = LCCharPredictor.INSTANCE.predict("bon", 10, collect);
+                System.out.println(predict);
             }
         });
     }
