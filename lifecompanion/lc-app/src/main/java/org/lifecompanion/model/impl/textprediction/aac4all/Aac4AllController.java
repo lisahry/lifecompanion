@@ -41,21 +41,44 @@ public enum Aac4AllController implements ModeListenerI {
             } else {
                 // Should organize the keys with char prediction
                 previousLine = new HashMap<>();
+                String charsPreviousLine = "";
+                int indexOfFirtCustomCharKey = 0;
+                boolean stop = false;
+
+                //saving the configuration of the line.
+                for (int i = 0; i < selectedComponentToScan.getComponents().size(); i++) {
+                    GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(gridComponent, i);
+                    if (!stop){ indexOfFirtCustomCharKey= indexOfFirtCustomCharKey+1;}// to keep the index of the first custom pred key.
+
+                    if (gridPartComponent instanceof GridPartKeyComponentI) {
+                        GridPartKeyComponentI key = (GridPartKeyComponentI) gridPartComponent;
+                        if (key.keyOptionProperty().get() instanceof CustomCharKeyOption) {
+                            stop=true;
+                            CustomCharKeyOption customCharKeyOption = (CustomCharKeyOption) key.keyOptionProperty().get();
+                            previousLine.put(customCharKeyOption, customCharKeyOption.predictionProperty().get());
+                            charsPreviousLine = charsPreviousLine + customCharKeyOption.predictionProperty().get();
+                        }
+                    }
+                }
+
+                //previousLine.forEach((customCharKeyOption, previousValue)-> {
+                 //charsPreviousLine = charsPreviousLine +previousValue;
+                //});
+                HashSet<Character> acceptedCharact = new HashSet<>(charsPreviousLine.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()));
+                List<Character> predict = LCCharPredictor.INSTANCE.predict(WritingStateController.INSTANCE.textBeforeCaretProperty().get(), acceptedCharact.size(), acceptedCharact);
+
+                //modifing the line with character predictionwha
                 for (int i = 0; i < selectedComponentToScan.getComponents().size(); i++) {
                     GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(gridComponent, i);
                     if (gridPartComponent instanceof GridPartKeyComponentI) {
                         GridPartKeyComponentI key = (GridPartKeyComponentI) gridPartComponent;
                         if (key.keyOptionProperty().get() instanceof CustomCharKeyOption) {
                             CustomCharKeyOption customCharKeyOption = (CustomCharKeyOption) key.keyOptionProperty().get();
-                            previousLine.put(customCharKeyOption, customCharKeyOption.predictionProperty().get());
-                            customCharKeyOption.predictionProperty().set("Case " + (i + 1));
+                            customCharKeyOption.predictionProperty().set(String.valueOf(predict.get(i-(indexOfFirtCustomCharKey-1))));
                         }
                     }
                 }
-                HashSet<Character> collect = new HashSet<>("abcdefgj".chars().mapToObj(c -> (char) c).collect(Collectors.toSet()));
-                String textBeforeCaret = WritingStateController.INSTANCE.textBeforeCaretProperty().get();
-                List<Character> predict = LCCharPredictor.INSTANCE.predict("bon", 10, collect);
-                System.out.println(predict);
+
             }
         });
     }
