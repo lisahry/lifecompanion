@@ -23,7 +23,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import org.lifecompanion.controller.categorizedelement.useaction.UseActionController;
@@ -50,8 +49,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -137,6 +136,8 @@ public enum SelectionModeController implements ModeListenerI {
      */
     private final Set<Consumer<Boolean>> configurationChangingListeners;
 
+    private final Set<BiConsumer<GridComponentI, ComponentToScanI>> scannedPartChangedListeners;
+
     SelectionModeController() {
         this.currentOverPart = new SimpleObjectProperty<>(this, "currentOverPart", null);
         this.playingProperty = new SimpleBooleanProperty(false);
@@ -146,6 +147,7 @@ public enum SelectionModeController implements ModeListenerI {
         this.clicTimeListeners = new ArrayList<>();
         this.mouseEventListener = new ArrayList<>();
         this.currentPressComponents = new HashSet<>();
+        this.scannedPartChangedListeners = new HashSet<>();
         this.keyEventListener = this::globalKeyboardEvent;
         this.changeListenerGrid = (obs, ov, nv) -> {
             if (nv != null) {
@@ -186,6 +188,18 @@ public enum SelectionModeController implements ModeListenerI {
         return this.playingProperty;
     }
     //========================================================================
+
+    public void addScannedPartChangedListeners(BiConsumer<GridComponentI, ComponentToScanI> listener) {
+        this.scannedPartChangedListeners.add(listener);
+    }
+
+    public void removeScannedPartChangedListeners(BiConsumer<GridComponentI, ComponentToScanI> listener) {
+        this.scannedPartChangedListeners.remove(listener);
+    }
+
+    public void fireScannedPartChangedListeners(GridComponentI grid, ComponentToScanI selectedComponentToScan) {
+        this.scannedPartChangedListeners.forEach(listener -> listener.accept(grid, selectedComponentToScan));
+    }
 
     // Class part : "Mouse events"
     //========================================================================

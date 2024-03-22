@@ -19,26 +19,16 @@
 
 package org.lifecompanion.plugin.aac4all.wp2.model.keyoption;
 
-import javafx.animation.*;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.transform.Rotate;
-import javafx.util.Duration;
 import org.jdom2.Element;
-import org.lifecompanion.controller.resource.IconHelper;
 import org.lifecompanion.framework.commons.fx.io.XMLObjectSerializer;
 import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
 import org.lifecompanion.model.api.io.IOContextI;
 import org.lifecompanion.model.impl.configurationcomponent.keyoption.AbstractKeyOption;
 import org.lifecompanion.model.impl.exception.LCException;
-import org.lifecompanion.ui.common.pane.generic.ImageViewPane;
-import org.lifecompanion.util.javafx.FXThreadUtils;
 
 
 public class AAC4AllKeyOption extends AbstractKeyOption {
-    private final BooleanProperty showVisualFeedbackOnAnswer;
 
     public AAC4AllKeyOption() {
         super();
@@ -46,7 +36,6 @@ public class AAC4AllKeyOption extends AbstractKeyOption {
         this.optionNameId = "spellgame.plugin.current.word.key.option.name";
         this.optionDescriptionId = "spellgame.plugin.current.word.key.option.description";
         this.iconName = "filler_icon_32px.png";
-        this.showVisualFeedbackOnAnswer = new SimpleBooleanProperty(true);
     }
 
     @Override

@@ -18,6 +18,7 @@
  */
 package org.lifecompanion.model.impl.selectionmode;
 
+import org.lifecompanion.controller.selectionmode.SelectionModeController;
 import org.lifecompanion.framework.commons.utils.lang.CollectionUtils;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
@@ -96,11 +97,18 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
         }
     }
 
+    private void setSelectedComponentToScan(ComponentToScanI currentComponentToScan) {
+        this.selectedComponentToScan = currentComponentToScan;
+        SelectionModeController.INSTANCE.fireScannedPartChangedListeners(currentGrid.get(),selectedComponentToScan);
+    }
+
     @Override
     protected void scannedGridChanged(final GridComponentI gridP) {
         super.scannedGridChanged(gridP);
-        this.selectedComponentToScan = null;
+        this.setSelectedComponentToScan(null);
     }
+
+
 
     @Override
     protected void generateScannedComponents() {
@@ -135,7 +143,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
             this.primaryIndex = 0;
             this.secondaryIndex = 0;
             this.currentComponentToScan = this.components.get(this.primaryIndex);
-            this.selectedComponentToScan = null;
+            this.setSelectedComponentToScan(null);
             this.updateCurrentComponent(true);
         }
     }
@@ -150,7 +158,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
         this.primaryIndex = 0;
         this.secondaryIndex = 0;
         this.currentComponentToScan = null;
-        this.selectedComponentToScan = null;
+        this.setSelectedComponentToScan(null);
         this.deselectAndUpdateCurrentPartOnNextPlay = false;
     }
     //========================================================================
@@ -163,7 +171,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
      */
     private void deselectCurrentPart() {
         if (this.selectedComponentToScan != null) {
-            this.selectedComponentToScan = null;
+            this.setSelectedComponentToScan(null);
             this.secondaryIndex = 0;
             this.timesInSamePart = 0;
             this.currentPart.set(null);
@@ -177,7 +185,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
     protected boolean fireActionNoCurrentPart() {
         AbstractPartScanSelectionMode.LOGGER.debug("Current selected line {}", this.selectedComponentToScan);
         if (this.selectedComponentToScan == null) {
-            this.selectedComponentToScan = this.components.get(this.primaryIndex);
+            this.setSelectedComponentToScan(this.components.get(this.primaryIndex));
             this.secondaryIndex = 0;
             this.timesInSamePart = 0;
 
@@ -229,7 +237,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
                     this.currentComponentToScan = componentsInside;
                     //Select part inside if needed
                     if (componentsInside.getComponents().size() > 1) {
-                        this.selectedComponentToScan = componentsInside;
+                        this.setSelectedComponentToScan(componentsInside);
                         this.currentPart.set(part);
                         this.secondaryIndex = j;
                     }
