@@ -10,6 +10,7 @@ import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
 import org.lifecompanion.model.impl.configurationcomponent.keyoption.CustomCharKeyOption;
 import org.lifecompanion.model.impl.textprediction.charprediction.LCCharPredictor;
+import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AAC4AllKeyOption;
 import org.lifecompanion.util.javafx.FXThreadUtils;
 
 import java.util.*;
@@ -35,7 +36,7 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
         SelectionModeController.INSTANCE.removeScannedPartChangedListeners(this.scannedPartChangedListener);
     }
 
-    private Map<CustomCharKeyOption, String> previousLine;
+    private Map<AAC4AllKeyOption, String> previousLine;
 
     public void partScanComponentChanged(GridComponentI gridComponent, ComponentToScanI selectedComponentToScan) {
         System.out.println("Scanned part changed " + gridComponent + " : " + selectedComponentToScan);
@@ -43,8 +44,8 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
             if (selectedComponentToScan == null) {
                 // Should reset previous line to default configuration
                 if (previousLine != null) {
-                    previousLine.forEach((customCharKeyOption, previousValue) -> {
-                        customCharKeyOption.predictionProperty().set(previousValue);
+                    previousLine.forEach((aac4AllKeyOption, previousValue) -> {
+                        aac4AllKeyOption.predictionProperty().set(previousValue);
                     });
                 }
             } else {
@@ -63,11 +64,11 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
 
                     if (gridPartComponent instanceof GridPartKeyComponentI) {
                         GridPartKeyComponentI key = (GridPartKeyComponentI) gridPartComponent;
-                        if (key.keyOptionProperty().get() instanceof CustomCharKeyOption) {
+                        if (key.keyOptionProperty().get() instanceof AAC4AllKeyOption) {
                             stop = true;
-                            CustomCharKeyOption customCharKeyOption = (CustomCharKeyOption) key.keyOptionProperty().get();
-                            previousLine.put(customCharKeyOption, customCharKeyOption.predictionProperty().get());
-                            charsPreviousLine = charsPreviousLine + customCharKeyOption.predictionProperty().get();
+                            AAC4AllKeyOption aac4AllKeyOption = (AAC4AllKeyOption) key.keyOptionProperty().get();
+                            previousLine.put(aac4AllKeyOption, aac4AllKeyOption.predictionProperty().get());
+                            charsPreviousLine = charsPreviousLine + aac4AllKeyOption.predictionProperty().get();
                         }
                     }
                 }
@@ -83,9 +84,9 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
                     GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(gridComponent, i);
                     if (gridPartComponent instanceof GridPartKeyComponentI) {
                         GridPartKeyComponentI key = (GridPartKeyComponentI) gridPartComponent;
-                        if (key.keyOptionProperty().get() instanceof CustomCharKeyOption) {
-                            CustomCharKeyOption customCharKeyOption = (CustomCharKeyOption) key.keyOptionProperty().get();
-                            customCharKeyOption.predictionProperty().set(String.valueOf(predict.get(i - (indexOfFirtCustomCharKey - 1))));
+                        if (key.keyOptionProperty().get() instanceof AAC4AllKeyOption) {
+                            AAC4AllKeyOption aac4AllKeyOption = (AAC4AllKeyOption) key.keyOptionProperty().get();
+                            aac4AllKeyOption.predictionProperty().set(String.valueOf(predict.get(i - (indexOfFirtCustomCharKey - 1))));
                         }
                     }
                 }

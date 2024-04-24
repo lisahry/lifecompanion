@@ -20,31 +20,54 @@
 package org.lifecompanion.plugin.aac4all.wp2.model.keyoption;
 
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jdom2.Element;
 import org.lifecompanion.framework.commons.fx.io.XMLObjectSerializer;
+import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
 import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
 import org.lifecompanion.model.api.io.IOContextI;
+import org.lifecompanion.model.api.style.TextPosition;
+import org.lifecompanion.model.impl.categorizedelement.useaction.available.WriteCharPredictionAction;
 import org.lifecompanion.model.impl.configurationcomponent.keyoption.AbstractKeyOption;
 import org.lifecompanion.model.impl.exception.LCException;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.WriteAAC4AllPredictionAction;
 
 
 public class AAC4AllKeyOption extends AbstractKeyOption {
+
+    private final transient StringProperty prediction;
+
+    private WriteAAC4AllPredictionAction writeReoLocPredictionAction;
 
     public AAC4AllKeyOption() {
         super();
         this.disableTextContent.set(true);
         this.optionNameId = "spellgame.plugin.current.word.key.option.name";
         this.optionDescriptionId = "spellgame.plugin.current.word.key.option.description";
-        this.iconName = "filler_icon_32px.png";
+        this.iconName = "icon_type_char_prediction.png";
+        // filler_icon_32px.png
+        this.prediction = new SimpleStringProperty(this, "prediction", "");
     }
 
     @Override
     public void attachToImpl(final GridPartKeyComponentI key) {
-        key.textContentProperty().set(null);
+       //  key.textContentProperty().set(null);
+        this.writeReoLocPredictionAction = key.getActionManager().getFirstActionOfType(UseActionEvent.ACTIVATION, WriteAAC4AllPredictionAction.class);
+        if (this.writeReoLocPredictionAction == null) {
+            this.writeReoLocPredictionAction = new WriteAAC4AllPredictionAction();
+            key.getActionManager().componentActions().get(UseActionEvent.ACTIVATION).add(this.writeReoLocPredictionAction);
+        }
+        this.writeReoLocPredictionAction.attachedToKeyOptionProperty().set(true);
+        if (key.getKeyStyle().textPositionProperty().value().getValue() != TextPosition.CENTER) {
+            key.getKeyStyle().textPositionProperty().selected().setValue(TextPosition.CENTER);
+        }
+        this.prediction.bindBidirectional(key.textContentProperty());
     }
 
-    @Override
     public void detachFromImpl(final GridPartKeyComponentI key) {
+        key.getActionManager().componentActions().get(UseActionEvent.ACTIVATION).remove(this.writeReoLocPredictionAction);
+        this.prediction.unbindBidirectional(key.textContentProperty());
     }
 
     @Override
@@ -58,5 +81,10 @@ public class AAC4AllKeyOption extends AbstractKeyOption {
     public void deserialize(Element node, IOContextI context) throws LCException {
         super.deserialize(node, context);
         XMLObjectSerializer.deserializeInto(AAC4AllKeyOption.class, this, node);
+    }
+
+
+    public StringProperty predictionProperty() {
+        return this.prediction;
     }
 }

@@ -1,3 +1,5 @@
 <texts>
     <text key="aac4all.wp2.plugin.example">TODO</text>
+    <text key="spellgame.plugin.current.word.key.option.name">RéoLoc</text>
+    <text key="spellgame.plugin.current.word.key.option.description">Réorganisation Locale des caractères interne aux lignes. </text>
 </texts>

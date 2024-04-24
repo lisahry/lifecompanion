@@ -19,29 +19,52 @@
 
 package org.lifecompanion.plugin.aac4all.wp2.model.useaction;
 
+import org.lifecompanion.controller.textcomponent.WritingStateController;
+import org.lifecompanion.framework.commons.utils.lang.StringUtils;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
+import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
+import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.model.api.usevariable.UseVariableI;
 import org.lifecompanion.model.impl.categorizedelement.useaction.SimpleUseActionImpl;
+import org.lifecompanion.model.impl.configurationcomponent.keyoption.AutoCharKeyOption;
+import org.lifecompanion.model.impl.configurationcomponent.keyoption.CustomCharKeyOption;
+import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AAC4AllKeyOption;
 
 import java.util.Map;
 
-public class WriteAAC4AllPredictionAction extends SimpleUseActionImpl<UseActionTriggerComponentI> {
+public class WriteAAC4AllPredictionAction extends SimpleUseActionImpl<GridPartKeyComponentI> {
 
     public WriteAAC4AllPredictionAction() {
-        super(UseActionTriggerComponentI.class);
-        this.order = 10;
+        super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
         this.nameID = "spellgame.plugin.action.skip.current.word.name";
         this.staticDescriptionID = "spellgame.plugin.action.skip.current.word.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
-        this.variableDescriptionProperty().set(getStaticDescription());
+        this.variableDescriptionProperty().set(this.getStaticDescription());
     }
 
     @Override
-    public void execute(UseActionEvent event, Map<String, UseVariableI<?>> variables) {
+    public void execute(final UseActionEvent event, final Map<String, UseVariableI<?>> variables) {
         // TODO
+        GridPartKeyComponentI parentKey = (GridPartKeyComponentI) this.parentComponentProperty().get();
+        if (parentKey != null) {
+            String prediction = null;
+            if (parentKey.keyOptionProperty().get() instanceof AAC4AllKeyOption) {
+                AAC4AllKeyOption predOption = (AAC4AllKeyOption) parentKey.keyOptionProperty().get();
+                prediction = predOption.predictionProperty().get();
+            }
+            if (prediction != null) {
+                if (!prediction.isEmpty() && StringUtils.isEquals(prediction,
+                        parentKey.configurationParentProperty().get().getPredictionParameters().charPredictionSpaceCharProperty().get())) {
+                    WritingStateController.INSTANCE.space(WritingEventSource.USER_ACTIONS);
+                } else {
+                    WritingStateController.INSTANCE.insertCharPrediction(WritingEventSource.USER_ACTIONS, prediction);
+                }
+            }
+        }
+
     }
 
 }
