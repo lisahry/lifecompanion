@@ -8,7 +8,6 @@ import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
 import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
-import org.lifecompanion.model.impl.configurationcomponent.keyoption.CustomCharKeyOption;
 import org.lifecompanion.model.impl.textprediction.charprediction.LCCharPredictor;
 import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AAC4AllKeyOption;
 import org.lifecompanion.util.javafx.FXThreadUtils;
@@ -44,9 +43,7 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
             if (selectedComponentToScan == null) {
                 // Should reset previous line to default configuration
                 if (previousLine != null) {
-                    previousLine.forEach((aac4AllKeyOption, previousValue) -> {
-                        aac4AllKeyOption.predictionProperty().set(previousValue);
-                    });
+                    previousLine.forEach((aac4AllKeyOption, previousValue) -> aac4AllKeyOption.predictionProperty().set(previousValue));
                 }
             } else {
                 // Should organize the keys with char prediction
@@ -62,11 +59,9 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
                         indexOfFirtCustomCharKey = indexOfFirtCustomCharKey + 1;
                     }// to keep the index of the first custom pred key.
 
-                    if (gridPartComponent instanceof GridPartKeyComponentI) {
-                        GridPartKeyComponentI key = (GridPartKeyComponentI) gridPartComponent;
-                        if (key.keyOptionProperty().get() instanceof AAC4AllKeyOption) {
+                    if (gridPartComponent instanceof GridPartKeyComponentI key) {
+                        if (key.keyOptionProperty().get() instanceof AAC4AllKeyOption aac4AllKeyOption) {
                             stop = true;
-                            AAC4AllKeyOption aac4AllKeyOption = (AAC4AllKeyOption) key.keyOptionProperty().get();
                             previousLine.put(aac4AllKeyOption, aac4AllKeyOption.predictionProperty().get());
                             charsPreviousLine = charsPreviousLine + aac4AllKeyOption.predictionProperty().get();
                         }
@@ -82,10 +77,8 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
                 //modifing the line with character predictionwha
                 for (int i = 0; i < selectedComponentToScan.getComponents().size(); i++) {
                     GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(gridComponent, i);
-                    if (gridPartComponent instanceof GridPartKeyComponentI) {
-                        GridPartKeyComponentI key = (GridPartKeyComponentI) gridPartComponent;
-                        if (key.keyOptionProperty().get() instanceof AAC4AllKeyOption) {
-                            AAC4AllKeyOption aac4AllKeyOption = (AAC4AllKeyOption) key.keyOptionProperty().get();
+                    if (gridPartComponent instanceof GridPartKeyComponentI key) {
+                        if (key.keyOptionProperty().get() instanceof AAC4AllKeyOption aac4AllKeyOption) {
                             aac4AllKeyOption.predictionProperty().set(String.valueOf(predict.get(i - (indexOfFirtCustomCharKey - 1))));
                         }
                     }
