@@ -15,8 +15,15 @@ import java.util.Map;
 
 public class AAC4AllWp2PluginProperties extends AbstractPluginConfigProperties {
 
+    private final StringProperty patientId;
+
     protected AAC4AllWp2PluginProperties(ObjectProperty<LCConfigurationI> parentConfiguration) {
         super(parentConfiguration);
+        patientId = new SimpleStringProperty();
+    }
+
+    public StringProperty patientIdProperty() {
+        return patientId;
     }
 
     @Override

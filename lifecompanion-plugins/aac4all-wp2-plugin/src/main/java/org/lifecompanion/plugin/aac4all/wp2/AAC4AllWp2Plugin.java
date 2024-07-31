@@ -10,6 +10,7 @@ import org.lifecompanion.model.impl.usevariable.IntegerUseVariable;
 import org.lifecompanion.model.impl.usevariable.StringUseVariable;
 import org.lifecompanion.model.impl.usevariable.UseVariableDefinition;
 import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2Controller;
+import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2EvaluationController;
 
 import java.io.File;
 import java.util.Arrays;
@@ -56,11 +57,13 @@ public class AAC4AllWp2Plugin implements PluginI {
     @Override
     public void modeStart(LCConfigurationI configuration) {
         AAC4AllWp2Controller.INSTANCE.modeStart(configuration);
+        AAC4AllWp2EvaluationController.INSTANCE.modeStart(configuration);
     }
 
     @Override
     public void modeStop(LCConfigurationI configuration) {
         AAC4AllWp2Controller.INSTANCE.modeStop(configuration);
+        AAC4AllWp2EvaluationController.INSTANCE.modeStop(configuration);
     }
     //========================================================================
 
