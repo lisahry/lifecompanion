@@ -43,8 +43,8 @@ public class AAC4AllKeyOption extends AbstractKeyOption {
     public AAC4AllKeyOption() {
         super();
         this.disableTextContent.set(true);
-        this.optionNameId = "spellgame.plugin.current.word.key.option.name";
-        this.optionDescriptionId = "spellgame.plugin.current.word.key.option.description";
+        this.optionNameId = "aac4all.wp2.plugin.current.word.key.option.name";
+        this.optionDescriptionId = "aac4all.wp2.plugin.current.word.key.option.description";
         this.iconName = "icon_type_char_prediction.png";
         // filler_icon_32px.png
         this.prediction = new SimpleStringProperty(this, "prediction", "");
