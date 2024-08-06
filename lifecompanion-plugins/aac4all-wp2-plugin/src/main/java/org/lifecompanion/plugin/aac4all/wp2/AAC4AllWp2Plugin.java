@@ -34,7 +34,7 @@ public class AAC4AllWp2Plugin implements PluginI {
 
     @Override
     public String[] getDefaultConfigurations(String languageCode) {
-        return null;
+        return new String[]{"/configurations/TrainingRéoLoc.lcc"};
     }
     //========================================================================
 
@@ -72,12 +72,24 @@ public class AAC4AllWp2Plugin implements PluginI {
     //========================================================================
     @Override
     public List<UseVariableDefinitionI> getDefinedVariables() {
-        return null;
+        return Arrays.asList(//
+                new UseVariableDefinition(
+                        VAR_ID_CURRENT_SENTENCE,
+                        "aac4all.wp2.plugin.variable.current.sentence.name",
+                        "aac4all.wp2.plugin.variable.current.sentence.description",
+                        "aac4all.wp2.plugin.variable.current.sentence.example"
+                )
+        );
     }
+
+    private final String VAR_ID_CURRENT_SENTENCE = "CurrentSentence";
 
     @Override
     public Function<UseVariableDefinitionI, UseVariableI<?>> getSupplierForUseVariable(String id) {
-        return null;
+        return switch (id) {
+            case VAR_ID_CURRENT_SENTENCE -> def -> new StringUseVariable(def, AAC4AllWp2EvaluationController.INSTANCE.getCurrentSentence());
+            default -> null;
+        };
     }
     //========================================================================
 
