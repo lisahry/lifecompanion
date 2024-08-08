@@ -78,16 +78,32 @@ public class AAC4AllWp2Plugin implements PluginI {
                         "aac4all.wp2.plugin.variable.current.sentence.name",
                         "aac4all.wp2.plugin.variable.current.sentence.description",
                         "aac4all.wp2.plugin.variable.current.sentence.example"
+                ),
+                 new UseVariableDefinition(
+                         VAR_ID_FUNCTIONAL_CURRENT_KEYBOARD,
+                         "aac4all.wp2.plugin.variable.functional.current.keyboard.name",
+                         "aac4all.wp2.plugin.variable.functional.current.keyboard.description",
+                         "aac4all.wp2.plugin.variable.functional.current.keyboard.example"
+        ),
+                new UseVariableDefinition(
+                        VAR_ID_INSTRUCTION_CURRENT_KEYBOARD,
+                        "aac4all.wp2.plugin.variable.instruction.current.keyboard.name",
+                        "aac4all.wp2.plugin.variable.instruction.current.keyboard.description",
+                        "aac4all.wp2.plugin.variable.instruction.current.keyboard.example"
                 )
         );
     }
 
     private final String VAR_ID_CURRENT_SENTENCE = "CurrentSentence";
+    private final String VAR_ID_FUNCTIONAL_CURRENT_KEYBOARD = "FunctionalCurrentKeyboard";
+    private final String VAR_ID_INSTRUCTION_CURRENT_KEYBOARD = "InstructionCurrentKeyboard";
 
     @Override
     public Function<UseVariableDefinitionI, UseVariableI<?>> getSupplierForUseVariable(String id) {
         return switch (id) {
             case VAR_ID_CURRENT_SENTENCE -> def -> new StringUseVariable(def, AAC4AllWp2EvaluationController.INSTANCE.getCurrentSentence());
+            case VAR_ID_FUNCTIONAL_CURRENT_KEYBOARD -> def -> new StringUseVariable(def, AAC4AllWp2EvaluationController.INSTANCE.getFunctionalCurrentKeyboard());
+            case VAR_ID_INSTRUCTION_CURRENT_KEYBOARD -> def -> new StringUseVariable(def, AAC4AllWp2EvaluationController.INSTANCE.getInstructionCurrentKeyboard());
             default -> null;
         };
     }

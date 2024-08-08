@@ -4,7 +4,26 @@
     <text key="aac4all.wp2.plugin.current.word.key.option.description">Réorganisation Locale des caractères interne aux lignes. Cette réorganisation intervient uniquement avec un défilement ligne colonne ou colonne ligne. </text>
     <text key="aac4all.wp2.plugin.general.config.view.title">Configuration AAC4ALL WP2</text>
 
-    <text key="aac4all.wp2.plugin.variable.current.sentence.name">TODO Name</text>
-    <text key="aac4all.wp2.plugin.variable.current.sentence.description">TODO description</text>
+    <text key="aac4all.wp2.plugin.variable.current.sentence.name">Phrase courrante</text>
+    <text key="aac4all.wp2.plugin.variable.current.sentence.description">TODO description : affiche la phrase à saisir par l'utilisateur</text>
     <text key="aac4all.wp2.plugin.variable.current.sentence.example">TOOD Example</text>
+
+    <text key="aac4all.wp2.plugin.variable.functional.current.keyboard.name">Fonctionnement du clavier courant</text>
+    <text key="aac4all.wp2.plugin.variable.functional.current.keyboard.description">TODO description : Décrit le fonctionnement du clavier qui va être utilisé par la suite. </text>
+    <text key="aac4all.wp2.plugin.variable.functional.current.keyboard.example">TODO example</text>
+
+    <text key="aac4all.wp2.plugin.variable.instruction.current.keyboard.name">Consigne du clavier courant</text>
+    <text key="aac4all.wp2.plugin.variable.instruction.current.keyboard.description">TODO description : Décrit les consignes pour le clavier qui va être utilisé par la suite. </text>
+    <text key="aac4all.wp2.plugin.variable.instruction.current.keyboard.example">TODO example</text>
+
+
+
+
+    <text key="aac4all.wp2.plugin.instruction.description.RéoLocL">Ici nous décrivons les consignes pour le clavier RéoLocLigne</text>
+    <text key="aac4all.wp2.plugin.instruction.description.RéoLocG">Ici nous décrivons les consignes pour le clavier RéoLocGlobale</text>
+    <text key="aac4all.wp2.plugin.instruction.description.Statique">Ici nous décrivons les consignes pour le clavier RéoLocStatique</text>
+
+    <text key="aac4all.wp2.plugin.functional.description.RéoLocL">Ici nous décrivons le principe de fonctionnement du clavier RéoLocLigne</text>
+    <text key="aac4all.wp2.plugin.functional.description.RéoLocG">Ici nous décrivons le principe de fonctionnement du clavier RéoLocGlobale</text>
+    <text key="aac4all.wp2.plugin.functional.description.Statique">Ici nous décrivons le principe de fonctionnement du clavier RéoLocStatique</text>
 </texts>
