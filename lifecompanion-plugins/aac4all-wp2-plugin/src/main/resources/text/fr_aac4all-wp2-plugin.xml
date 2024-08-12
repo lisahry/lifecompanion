@@ -17,6 +17,20 @@
     <text key="aac4all.wp2.plugin.variable.instruction.current.keyboard.example">TODO example</text>
 
 
+    <text key="aac4aal.wp2.plugin.main.action.category.description"> TODO DESCRIP AAC4All évaluation WP2 </text>
+    <text key="aac4aal.wp2.plugin.main.action.category.name">TODO NOM   AAC4All évaluation WP2 </text>
+
+    <text key="aac4aal.wp2.plugin.action.display.sentence.name">Affichage de la phrase</text>
+    <text key="aac4aal.wp2.plugin.action.display.sentence.description">Permet de valider la saisie et de passer à la prochaine phrase à saisir</text>
+
+    <text key="aac4aal.wp2.plugin.action.next.eval.name">Prochaine config à tester</text>
+    <text key="aac4aal.wp2.plugin.action.next.eval.description">Permet de choisir aléatoirement le prochain clavier à tester</text>
+
+    <text key="aac4aal.wp2.plugin.action.start.eval.name">Première config à tester</text>
+    <text key="aac4aal.wp2.plugin.action.start.eval.description">Permet de choisir aléatoirement le premier clavier à tester. S'il n'y a pas de prochaine, ferme LifeCompanion</text>
+
+    <text key="aac4aal.wp2.plugin.action.start.training.name">Lancer le clavier à tester</text>
+    <text key="aac4aal.wp2.plugin.action.start.training.description">Lance la configuration à tester et les actions associées</text>
 
 
     <text key="aac4all.wp2.plugin.instruction.description.RéoLocL">Ici nous décrivons les consignes pour le clavier RéoLocLigne</text>
@@ -26,4 +40,7 @@
     <text key="aac4all.wp2.plugin.functional.description.RéoLocL">Ici nous décrivons le principe de fonctionnement du clavier RéoLocLigne</text>
     <text key="aac4all.wp2.plugin.functional.description.RéoLocG">Ici nous décrivons le principe de fonctionnement du clavier RéoLocGlobale</text>
     <text key="aac4all.wp2.plugin.functional.description.Statique">Ici nous décrivons le principe de fonctionnement du clavier RéoLocStatique</text>
+
+    <text key="use.action.eva.categorie">Catégorie pour EVA</text>
+
 </texts>

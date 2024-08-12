@@ -32,8 +32,8 @@ public class NextDailyEvaluationUseAction extends SimpleUseActionImpl<GridPartKe
     public NextDailyEvaluationUseAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "todo-start-next-evaluation";
-        this.staticDescriptionID = "todo";
+        this.nameID = "aac4aal.wp2.plugin.action.next.eval.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.next.eval.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());

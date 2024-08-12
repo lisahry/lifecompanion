@@ -38,8 +38,8 @@ public class WriteAAC4AllPredictionAction extends SimpleUseActionImpl<GridPartKe
     public WriteAAC4AllPredictionAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "spellgame.plugin.action.skip.current.word.name";
-        this.staticDescriptionID = "spellgame.plugin.action.skip.current.word.description";
+        this.nameID = "aac4aal.wp2.plugin.action.write.prediction.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.write.prediction.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());

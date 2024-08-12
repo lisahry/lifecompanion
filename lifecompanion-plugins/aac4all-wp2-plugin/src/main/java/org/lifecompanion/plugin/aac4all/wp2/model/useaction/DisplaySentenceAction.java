@@ -32,8 +32,8 @@ public class DisplaySentenceAction extends SimpleUseActionImpl<GridPartKeyCompon
     public DisplaySentenceAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "display-sentence";
-        this.staticDescriptionID = "todo";
+        this.nameID = "aac4aal.wp2.plugin.action.display.sentence.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.display.sentence.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());

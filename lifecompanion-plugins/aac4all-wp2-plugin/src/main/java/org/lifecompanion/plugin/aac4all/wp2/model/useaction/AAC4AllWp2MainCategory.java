@@ -17,12 +17,12 @@ public enum AAC4AllWp2MainCategory implements UseActionMainCategoryI {
 
     @Override
     public String getStaticDescription() {
-        return Translation.getText("spellgame.plugin.main.action.category.description");
+        return Translation.getText("saac4aal.wp2.plugin.main.action.category.description");
     }
 
     @Override
     public String getName() {
-        return Translation.getText("spellgame.plugin.main.action.category.name");
+        return Translation.getText("aac4aal.wp2.plugin.main.action.category.name");
     }
 
     @Override

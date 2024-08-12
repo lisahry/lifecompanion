@@ -2,6 +2,7 @@ package org.lifecompanion.plugin.aac4all.wp2.controller;
 
 import javafx.beans.property.BooleanProperty;
 import org.lifecompanion.controller.textcomponent.WritingStateController;
+import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.model.api.configurationcomponent.*;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
@@ -100,17 +101,17 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             currentKeyboardEvaluation = new WP2KeyboardEvaluation(KeyboardType.REOLOC_G); // ??? pour les logs ? je ne sais plus
 
             //update description variables according to the current keyboard
-           if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocG")){//
-                functionalCurrentKeyboard="Ici nous décrivons le principe de fonctionnement du clavier RéoLocGlobale";
-                instructionCurrentKeyboard="RéoLocG consignes";//"aac4all.wp2.plugin.instruction.description.RéoLocG"
+           if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocG")){
+               functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocG");
+               instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocG");
+           }
+            if(currentKeyboard.nameProperty().get().startsWith("Clavier Statique")){
+                functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.Statique");
+                instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.Statique");
             }
-            if(currentKeyboard.nameProperty().get().startsWith("Clavier Statique")){//
-                functionalCurrentKeyboard="Ici nous décrivons le principe de fonctionnement du clavier Statique";
-                instructionCurrentKeyboard="Statique consignes";//"aac4all.wp2.plugin.instruction.description.Statique"
-            }
-            if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocL")){//
-                functionalCurrentKeyboard="Ici nous décrivons le principe de fonctionnement du clavier RéoLocLigne"; //comment faire pour le lier aux traductions ?
-                instructionCurrentKeyboard="RéoLocL consignes";//"aac4all.wp2.plugin.instruction.description.RéoLocL"
+            if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocL")){
+                functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocL");
+                instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocL");
             }
             UseVariableController.INSTANCE.requestVariablesUpdate();
             return true;

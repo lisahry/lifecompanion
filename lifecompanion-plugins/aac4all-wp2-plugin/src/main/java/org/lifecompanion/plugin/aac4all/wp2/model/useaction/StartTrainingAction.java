@@ -32,8 +32,8 @@ public class StartTrainingAction extends SimpleUseActionImpl<GridPartKeyComponen
     public StartTrainingAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "todo-start-training";
-        this.staticDescriptionID = "todo";
+        this.nameID = "aac4aal.wp2.plugin.action.start.training.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.start.training.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());

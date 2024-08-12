@@ -36,8 +36,8 @@ public class StartDailyEvaluationUseAction extends SimpleUseActionImpl<GridPartK
     public StartDailyEvaluationUseAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "todo-start-evaluation";
-        this.staticDescriptionID = "todo";
+        this.nameID = "aac4aal.wp2.plugin.action.start.eval.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.start.eval.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());

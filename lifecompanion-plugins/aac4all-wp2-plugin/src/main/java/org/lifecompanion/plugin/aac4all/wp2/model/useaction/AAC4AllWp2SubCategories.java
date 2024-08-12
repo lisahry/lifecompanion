@@ -10,7 +10,10 @@ import org.lifecompanion.model.api.categorizedelement.useaction.UseActionMainCat
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionSubCategoryI;
 
 public enum AAC4AllWp2SubCategories implements UseActionSubCategoryI {
-    TODO("spellgame.plugin.sub.action.category.current.game.name", CategorizedElementColorProvider.nextColor(AAC4AllWp2MainCategory.INSTANCE)),
+
+
+    //class part
+    TODO("aac4aal.wp2.plugin.main.action.category.name", CategorizedElementColorProvider.nextColor(AAC4AllWp2MainCategory.INSTANCE)),
     ;
 
     private final String nameId;
