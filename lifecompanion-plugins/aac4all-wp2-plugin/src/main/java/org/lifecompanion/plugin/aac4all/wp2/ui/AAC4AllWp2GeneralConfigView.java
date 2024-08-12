@@ -33,7 +33,7 @@ import org.lifecompanion.ui.app.generalconfiguration.GeneralConfigurationStepVie
 
 public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralConfigurationStepViewI {
 
-    static final String STEP_ID = "SpellGameGeneralConfigView";
+    static final String STEP_ID = "AAC4AllWp2GeneralConfigView";
 
     private TextField textFieldPatientId;
 
@@ -76,8 +76,8 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
         int gridRowIndex = 0;
         this.textFieldPatientId = new TextField();
 
-        gridPaneConfiguration.add(new Label(Translation.getText("aac4all.wp2.plugin.general.config.view.field.patient.id")), 0, gridRowIndex++);
-        gridPaneConfiguration.add(textFieldPatientId, 1, gridRowIndex++);
+        gridPaneConfiguration.add(new Label(Translation.getText("aac4all.wp2.plugin.general.config.view.field.patient.id")), 0, gridRowIndex);
+        gridPaneConfiguration.add(textFieldPatientId, 1, gridRowIndex);
 
         gridPaneConfiguration.setPadding(new Insets(GeneralConfigurationStepViewI.PADDING));
         this.setCenter(gridPaneConfiguration);
