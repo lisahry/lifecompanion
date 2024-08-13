@@ -7,6 +7,7 @@ import org.lifecompanion.model.api.configurationcomponent.*;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
+import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
 import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
 import org.lifecompanion.controller.io.*;
 import org.lifecompanion.controller.usevariable.*;
@@ -22,7 +23,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     INSTANCE;
 
     private final long EVALUATION_DURATION_MS = (long) 20 * 1000;
-
+    private AAC4AllWp2PluginProperties currentAAC4AllWp2PluginProperties;
     private BooleanProperty evaluationRunning;
     private List<GridPartComponentI> keyboards;
     private GridPartComponentI firstEvalKeyboard;
@@ -97,26 +98,39 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             int indexTrainingKeyboard = new Random().nextInt(keyboards.size());
             currentKeyboard = keyboards.get(indexTrainingKeyboard);
             keyboards.remove(indexTrainingKeyboard);//update list of keyboards still to be tested
-
-            currentKeyboardEvaluation = new WP2KeyboardEvaluation(KeyboardType.REOLOC_G); // ??? pour les logs ? je ne sais plus
-
-            //update description variables according to the current keyboard
-           if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocG")){
-               functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocG");
-               instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocG");
-           }
-            if(currentKeyboard.nameProperty().get().startsWith("Clavier Statique")){
-                functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.Statique");
-                instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.Statique");
-            }
-            if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocL")){
-                functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocL");
-                instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocL");
-            }
-            UseVariableController.INSTANCE.requestVariablesUpdate();
+            updatevariables();
             return true;
         }
         return false;
+    }
+    public void updatevariables(){
+        currentKeyboardEvaluation = new WP2KeyboardEvaluation(KeyboardType.REOLOC_G); // ??? pour les logs ? je ne sais plus
+
+        //update description variables according to the current keyboard
+        if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocG")){
+            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocG");
+            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocG");
+        }
+        if(currentKeyboard.nameProperty().get().startsWith("Clavier Statique")){
+            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.Statique");
+            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.Statique");
+        }
+        if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocL")){
+            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocL");
+            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocL");
+        }
+        /*
+         if(currentKeyboard.nameProperty().get().startsWith("Clavier CurSta")){
+            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.CurSta");
+            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.CurSta");
+        }
+        if(currentKeyboard.nameProperty().get().startsWith("Clavier DyLin")){
+            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.DyLin");
+            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.DyLin");
+        }
+
+        */
+        UseVariableController.INSTANCE.requestVariablesUpdate();
     }
 
     public void nextDailyEvaluation() {
@@ -137,7 +151,10 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     public void startEvaluation() {
         // TODO : lancer les claviers selon l'ordre de l'ID
         //récupérer l'id de l'utilisateur
+        String patientID = String.valueOf(currentAAC4AllWp2PluginProperties.patientIdProperty());
+
     }
+
 
     public void startTraining() {
         // TODO: go to currentKeyboardEvaluation
