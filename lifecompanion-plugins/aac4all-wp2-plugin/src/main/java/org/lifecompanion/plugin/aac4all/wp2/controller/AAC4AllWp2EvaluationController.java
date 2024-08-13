@@ -1,21 +1,21 @@
 package org.lifecompanion.plugin.aac4all.wp2.controller;
 
 import javafx.beans.property.BooleanProperty;
-import org.lifecompanion.controller.textcomponent.WritingStateController;
-import org.lifecompanion.framework.commons.translation.Translation;
-import org.lifecompanion.model.api.configurationcomponent.*;
-import org.lifecompanion.model.api.lifecycle.ModeListenerI;
+import org.lifecompanion.controller.io.JsonHelper;
+import org.lifecompanion.controller.resource.ResourceHelper;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
+import org.lifecompanion.controller.textcomponent.WritingStateController;
+import org.lifecompanion.controller.usevariable.UseVariableController;
+import org.lifecompanion.framework.commons.translation.Translation;
+import org.lifecompanion.framework.commons.utils.lang.StringUtils;
+import org.lifecompanion.model.api.configurationcomponent.GridPartComponentI;
+import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
+import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
 import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
-import org.lifecompanion.controller.io.*;
-import org.lifecompanion.controller.usevariable.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,40 +25,45 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     private final long EVALUATION_DURATION_MS = (long) 20 * 1000;
     private AAC4AllWp2PluginProperties currentAAC4AllWp2PluginProperties;
     private BooleanProperty evaluationRunning;
-    private List<GridPartComponentI> keyboards;
-    private GridPartComponentI firstEvalKeyboard;
 
     private WP2Evaluation currentEvaluation;
     private WP2KeyboardEvaluation currentKeyboardEvaluation;
-    private List<String> phraseSetFR = fileToList("C:\\Users\\lhoiry\\Documents\\lifecompanion-main\\lifecompanion-plugins\\aac4all-wp2-plugin\\src\\main\\resources\\text\\PhraseSetFR.txt");//Arrays.asList("elle est directement allée te voir","du moment que tu le vis bien","ils aiment ni les pommes ni les ananas"); // il faudra l'alimenter par un fichier plus tard
-    public static List<String> fileToList(String filePath) {
-        List<String> lines = null;
-        Path path = Paths.get(filePath);
-        try {
-            // Lire toutes les lignes du fichier et les stocker dans la liste
-            lines = Files.readAllLines(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return lines;
-    }
+    private final List<String> phraseSetFR;
 
     private String currentSentence = "";
 
     private String functionalCurrentKeyboard = "";
-    public String getFunctionalCurrentKeyboard() { return functionalCurrentKeyboard;    }
+    private GridPartComponentI keyboardConsigne;
 
-    private String instructionCurrentKeyboard ="";
-    public String getInstructionCurrentKeyboard() {return instructionCurrentKeyboard;   }
+    private Map<KeyboardType, GridPartComponentI> keyboardsMap;
+    private RandomType randomType;
+    private int currentRandomIndex;
+    private KeyboardType currentKeyboardType;
+
+    public String getFunctionalCurrentKeyboard() {
+        return functionalCurrentKeyboard;
+    }
+
+    private String instructionCurrentKeyboard = "";
+
+    public String getInstructionCurrentKeyboard() {
+        return instructionCurrentKeyboard;
+    }
 
     private GridPartComponentI currentKeyboard;
+
     public GridPartComponentI getCurrentKeyboard() {
         return currentKeyboard;
     }
 
 
-
     AAC4AllWp2EvaluationController() {
+        phraseSetFR = new ArrayList<>();
+        try (Scanner scan = new Scanner(ResourceHelper.getInputStreamForPath("/text/PhraseSetFR.txt"), StandardCharsets.UTF_8)) {
+            while (scan.hasNextLine()) {
+                phraseSetFR.add(StringUtils.trimToEmpty(scan.nextLine()));
+            }
+        }
     }
 
     public String getCurrentSentence() {
@@ -71,6 +76,25 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     @Override
     public void modeStart(LCConfigurationI configuration) {
         this.configuration = configuration;
+        this.keyboardConsigne = this.configuration.getAllComponent().values().stream()
+                .filter(d -> d instanceof GridPartComponentI)
+                .filter(c -> c.nameProperty().get().startsWith("Consigne"))
+                .map(c -> (GridPartComponentI) c)
+                .findAny().orElse(null);
+
+        KeyboardType[] values = KeyboardType.values();
+        keyboardsMap = new HashMap<>();
+        for (KeyboardType keyboardType : values) {
+            GridPartComponentI keyboard = this.configuration.getAllComponent().values().stream()
+                    .filter(d -> d instanceof GridPartComponentI)
+                    .filter(c -> c.nameProperty().get().startsWith(keyboardType.getGridName()))
+                    .map(c -> (GridPartComponentI) c)
+                    .findAny().orElse(null);
+            if (keyboard != null) {
+                keyboardsMap.put(keyboardType, keyboard);
+            }
+        }
+
     }
 
     @Override
@@ -79,12 +103,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     }
 
     public void startDailyEvaluation() {
-        keyboards = this.configuration.getAllComponent().values().stream()
-                .filter(d -> d instanceof GridPartComponentI)
-                .filter(c -> c.nameProperty().get().startsWith("Clavier"))
-                .map(c -> (GridPartComponentI) c)
-                .collect(Collectors.toList());
-        System.out.println(keyboards);
+        randomType = RandomType.RANDOM_1; // TODO stocker dans properties
+        currentRandomIndex = 0;
         currentEvaluation = new WP2Evaluation(new Date());
         System.out.println(phraseSetFR);
 
@@ -93,58 +113,27 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     }
 
     private boolean goToNextKeyboardToEvaluate() {
-        if (!keyboards.isEmpty()) {
-            //random define of currentkeyboard
-            int indexTrainingKeyboard = new Random().nextInt(keyboards.size());
-            currentKeyboard = keyboards.get(indexTrainingKeyboard);
-            keyboards.remove(indexTrainingKeyboard);//update list of keyboards still to be tested
+        if (currentRandomIndex < randomType.getKeyboards().size()) {
+            this.currentKeyboardType = randomType.getKeyboards().get(currentRandomIndex++);
+            currentKeyboard = keyboardsMap.get(currentKeyboardType);
             updatevariables();
             return true;
         }
         return false;
     }
-    public void updatevariables(){
+
+    public void updatevariables() {
         currentKeyboardEvaluation = new WP2KeyboardEvaluation(KeyboardType.REOLOC_G); // ??? pour les logs ? je ne sais plus
-
-        //update description variables according to the current keyboard
-        if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocG")){
-            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocG");
-            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocG");
-        }
-        if(currentKeyboard.nameProperty().get().startsWith("Clavier Statique")){
-            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.Statique");
-            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.Statique");
-        }
-        if(currentKeyboard.nameProperty().get().startsWith("Clavier RéoLocL")){
-            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.RéoLocL");
-            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.RéoLocL");
-        }
-        /*
-         if(currentKeyboard.nameProperty().get().startsWith("Clavier CurSta")){
-            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.CurSta");
-            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.CurSta");
-        }
-        if(currentKeyboard.nameProperty().get().startsWith("Clavier DyLin")){
-            functionalCurrentKeyboard=Translation.getText("aac4all.wp2.plugin.functional.description.DyLin");
-            instructionCurrentKeyboard= Translation.getText("aac4all.wp2.plugin.instruction.description.DyLin");
-        }
-
-        */
+        functionalCurrentKeyboard = Translation.getText("aac4all.wp2.plugin.functional.description." + currentKeyboardType.getTranslationId());
+        instructionCurrentKeyboard = Translation.getText("aac4all.wp2.plugin.instruction.description." + currentKeyboardType.getTranslationId());
         UseVariableController.INSTANCE.requestVariablesUpdate();
     }
 
     public void nextDailyEvaluation() {
         if (!goToNextKeyboardToEvaluate()) {
             System.out.println("c'est fini ");
-        }
-        else {
-            List<GridPartComponentI> consigne =this.configuration.getAllComponent().values().stream()
-                    .filter(d -> d instanceof GridPartComponentI)
-                    .filter(c -> c.nameProperty().get().startsWith("Consigne"))
-                    .map(c -> (GridPartComponentI) c)
-                    .collect(Collectors.toList());// trouver un moyen d'aller à Consigne plus facilement
-            SelectionModeController.INSTANCE.goToGridPart(consigne.get(0));
-
+        } else {
+            SelectionModeController.INSTANCE.goToGridPart(keyboardConsigne);
         }
     }
 
@@ -174,6 +163,13 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             currentKeyboardEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(455, 555)));
         }); // Pour les logs ex: à chaque nouveau mot saisi on récupère la position de l'eye tracking
 
+        SelectionModeController.INSTANCE.addScannedPartChangedListeners((gridComponentI, componentToScanI) -> {
+            System.out.println("Changement de ligne :" + componentToScanI);
+        });
+
+        SelectionModeController.INSTANCE.currentOverPartProperty().addListener((obs, ov, nv) -> {
+            System.out.println("Changement de case :" + nv);
+        });
 
         //TODO : affiche les phrases à saisir
         StartDislaySentence();
@@ -198,7 +194,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 System.out.println(JsonHelper.GSON.toJson(currentEvaluation));
             }
         };
-        timer.schedule(timerTask,EVALUATION_DURATION_MS);
+        timer.schedule(timerTask, EVALUATION_DURATION_MS);
     }
 
 

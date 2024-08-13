@@ -19,22 +19,29 @@
 
 package org.lifecompanion.plugin.aac4all.wp2.ui;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionConfigurationViewI;
 import org.lifecompanion.model.api.usevariable.UseVariableDefinitionI;
-import org.lifecompanion.plugin.aac4all.wp2.model.useaction.evaAction;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.EvaType;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.SetEvaValueUseAction;
 import org.lifecompanion.ui.common.control.specific.usevariable.UseVariableTextArea;
 
-public abstract class evaConfigView extends VBox implements UseActionConfigurationViewI<evaAction> {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+public class SetEvaValueUseActionConfigView extends VBox implements UseActionConfigurationViewI<SetEvaValueUseAction> {
+    private ComboBox<EvaType> comboBoxEvaType;
     private UseVariableTextArea useVariableTextArea;
 
-    public evaConfigView() {
+    public SetEvaValueUseActionConfigView() {
     }
 
 
@@ -42,7 +49,8 @@ public abstract class evaConfigView extends VBox implements UseActionConfigurati
         this.setSpacing(4.0);
         this.setPadding(new Insets(10.0));
         this.useVariableTextArea = new UseVariableTextArea();
-        this.getChildren().addAll(new Label(Translation.getText("use.action.eva.categorie")), this.useVariableTextArea);
+        comboBoxEvaType = new ComboBox<>(FXCollections.observableList(Arrays.stream(EvaType.values()).toList()));
+        this.getChildren().addAll(new Label(Translation.getText("use.action.eva.categorie")), this.useVariableTextArea, this.comboBoxEvaType);
 
     }
 
@@ -51,19 +59,21 @@ public abstract class evaConfigView extends VBox implements UseActionConfigurati
         return this;
     }
 
-    public void editStarts(final evaAction action, final ObservableList<UseVariableDefinitionI> possibleVariables) {
+    public void editStarts(final SetEvaValueUseAction action, final ObservableList<UseVariableDefinitionI> possibleVariables) {
         this.useVariableTextArea.getTextArea().clear();
         this.useVariableTextArea.setAvailableUseVariable(possibleVariables);
         this.useVariableTextArea.getTextArea().setText(action.getEvaCategorieProperty().get());
+        this.comboBoxEvaType.setValue(action.evaTypeProperty().get());
     }
 
-    public void editEnds(final evaAction action) {
+    public void editEnds(final SetEvaValueUseAction action) {
         action.getEvaCategorieProperty().set(this.useVariableTextArea.getTextArea().getText());
+        action.evaTypeProperty().set(comboBoxEvaType.getValue());
     }
 
     @Override
-    public Class<evaAction> getConfiguredActionType() {
-        return evaAction.class;
+    public Class<SetEvaValueUseAction> getConfiguredActionType() {
+        return SetEvaValueUseAction.class;
     }
 
 }
