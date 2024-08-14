@@ -23,66 +23,82 @@ import javafx.beans.property.*;
 import org.jdom2.Element;
 import org.lifecompanion.framework.commons.fx.io.XMLGenericProperty;
 import org.lifecompanion.framework.commons.fx.io.XMLObjectSerializer;
+import org.lifecompanion.framework.commons.fx.translation.TranslationFX;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
 import org.lifecompanion.model.api.io.IOContextI;
 import org.lifecompanion.model.api.usevariable.UseVariableI;
 import org.lifecompanion.model.impl.categorizedelement.useaction.SimpleUseActionImpl;
 import org.lifecompanion.model.impl.exception.LCException;
+import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2Controller;
+import org.lifecompanion.plugin.aac4all.wp2.model.logs.WP2KeyboardEvaluation;
+import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2EvaluationController;
 
 import java.util.Map;
 
 
 public class SetEvaValueUseAction extends SimpleUseActionImpl<UseActionTriggerComponentI> {
 
-    private final StringProperty evaCategorie;
-    private final IntegerProperty evaScore;
 
-    @XMLGenericProperty(EvaType.class)
-    private final ObjectProperty<EvaType> evaType;
+    @XMLGenericProperty(EvaCategoryType.class)
+    private final ObjectProperty<EvaCategoryType> evaCategoryType;
+
+    @XMLGenericProperty(EvaScoreType.class)
+    private final ObjectProperty<EvaScoreType> evaScoreType;
 
     public SetEvaValueUseAction() {
         super(UseActionTriggerComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
         this.order = 1;
-        this.evaCategorie = new SimpleStringProperty("");
-        this.evaScore = new SimpleIntegerProperty();
-        this.evaType = new SimpleObjectProperty<>();
+        //this.evaCategorie = new SimpleStringProperty("");
+        //this.evaScore = new SimpleIntegerProperty();
+        this.evaScoreType = new SimpleObjectProperty<>();
+        this.evaCategoryType = new SimpleObjectProperty<>();
+
         this.nameID = "todo-eva";
         this.staticDescriptionID = "todo";
         this.configIconPath = "filler_icon_32px.png";
-        this.parameterizableAction = true;
-        this.variableDescriptionProperty().set(this.getStaticDescription());
+        this.variableDescriptionProperty().bind(TranslationFX.getTextBinding("action.simple.set.eva.value.variable.description", this.evaCategoryType,this.evaScoreType));
+
     }
 
-    public ObjectProperty<EvaType> evaTypeProperty() {
-        return evaType;
+    public EvaCategoryType getEvaCategoryType() {
+        return evaCategoryType.get();
     }
 
-    public StringProperty getEvaCategorieProperty() {
-        return this.evaCategorie;
+    public ObjectProperty<EvaCategoryType> evaCategoryTypeProperty() {
+        return evaCategoryType;
     }
 
-    public IntegerProperty getEvaScoreProperty() {
-        return this.evaScore;
+    public void setEvaCategoryType(EvaCategoryType evaCategoryType) {
+        this.evaCategoryType.set(evaCategoryType);
     }
 
-    public void setEvaCategorie(String evaCategorie) {
-        this.evaCategorie.set(evaCategorie);
+    public EvaScoreType getEvaScoreType() {
+        return evaScoreType.get();
     }
 
-    public void setEvaScore(int evaScore) {
-        this.evaScore.set(evaScore);
+    public ObjectProperty<EvaScoreType> evaScoreTypeProperty() {
+        return evaScoreType;
+    }
+
+    public void setEvaScoreType(EvaScoreType evaScoreType) {
+        this.evaScoreType.set(evaScoreType);
     }
 
     @Override
     public void execute(final UseActionEvent event, final Map<String, UseVariableI<?>> variables) {
-        // AAC4AllWp2EvaluationController.INSTANCE.nextDailyEvaluation();
-        if (this.evaCategorie.get() != null) {
-            if (evaType.get() == EvaType.FATIGUE) {
+        if (this.evaCategoryType.get() != null) {
+            if (evaCategoryType.get() == EvaCategoryType.FATIGUE) {
+                if(evaScoreType.get()!= null){
                 // TODO
-            } else if (evaType.get() == EvaType.SATISFACTION) {
+                    //System.out.println("Fatigue avec score de "+evaScoreType.get().getScore());
+                    AAC4AllWp2EvaluationController.INSTANCE.setEvaFatigueScore(evaScoreType.get().getScore());
+                }
+            } else if (evaCategoryType.get() == EvaCategoryType.SATISFACTION) {
                 // TODO
+               // System.out.println("Satisfaction avec score de "+ evaScoreType.get().getScore());
+                AAC4AllWp2EvaluationController.INSTANCE.setEvaSatisfactionScore(evaScoreType.get().getScore());
             }
         }
     }

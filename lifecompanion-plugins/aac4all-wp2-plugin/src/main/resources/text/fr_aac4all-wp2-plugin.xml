@@ -42,5 +42,8 @@
     <text key="aac4all.wp2.plugin.functional.description.Statique">Ici nous décrivons le principe de fonctionnement du clavier RéoLocStatique</text>
 
     <text key="use.action.eva.categorie">Catégorie pour EVA</text>
+    <text key="use.action.eva.score">Score pour EVA</text>
+    <text key="action.simple.set.eva.value.variable.description">Catégorie et score : </text>
+
 
 </texts>

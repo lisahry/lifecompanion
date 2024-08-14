@@ -29,17 +29,16 @@ import javafx.scene.layout.VBox;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionConfigurationViewI;
 import org.lifecompanion.model.api.usevariable.UseVariableDefinitionI;
-import org.lifecompanion.plugin.aac4all.wp2.model.useaction.EvaType;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.EvaCategoryType;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.EvaScoreType;
 import org.lifecompanion.plugin.aac4all.wp2.model.useaction.SetEvaValueUseAction;
 import org.lifecompanion.ui.common.control.specific.usevariable.UseVariableTextArea;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class SetEvaValueUseActionConfigView extends VBox implements UseActionConfigurationViewI<SetEvaValueUseAction> {
-    private ComboBox<EvaType> comboBoxEvaType;
-    private UseVariableTextArea useVariableTextArea;
+    private ComboBox<EvaCategoryType> comboBoxEvaCategoryType;
+    private ComboBox<EvaScoreType> comboBoxEvaScoreType;
 
     public SetEvaValueUseActionConfigView() {
     }
@@ -48,9 +47,13 @@ public class SetEvaValueUseActionConfigView extends VBox implements UseActionCon
     public void initUI() {
         this.setSpacing(4.0);
         this.setPadding(new Insets(10.0));
-        this.useVariableTextArea = new UseVariableTextArea();
-        comboBoxEvaType = new ComboBox<>(FXCollections.observableList(Arrays.stream(EvaType.values()).toList()));
-        this.getChildren().addAll(new Label(Translation.getText("use.action.eva.categorie")), this.useVariableTextArea, this.comboBoxEvaType);
+
+        this.comboBoxEvaScoreType = new ComboBox<>(FXCollections.observableList(Arrays.stream(EvaScoreType.values()).toList()));
+        this.getChildren().addAll(new Label(Translation.getText("use.action.eva.score")), this.comboBoxEvaScoreType);
+
+        this.comboBoxEvaCategoryType = new ComboBox<>(FXCollections.observableList(Arrays.stream(EvaCategoryType.values()).toList()));
+        this.getChildren().addAll(new Label(Translation.getText("use.action.eva.categorie")), this.comboBoxEvaCategoryType);
+
 
     }
 
@@ -60,15 +63,18 @@ public class SetEvaValueUseActionConfigView extends VBox implements UseActionCon
     }
 
     public void editStarts(final SetEvaValueUseAction action, final ObservableList<UseVariableDefinitionI> possibleVariables) {
-        this.useVariableTextArea.getTextArea().clear();
-        this.useVariableTextArea.setAvailableUseVariable(possibleVariables);
-        this.useVariableTextArea.getTextArea().setText(action.getEvaCategorieProperty().get());
-        this.comboBoxEvaType.setValue(action.evaTypeProperty().get());
+
+        this.comboBoxEvaScoreType.setValue(action.getEvaScoreType());
+        this.comboBoxEvaCategoryType.setValue(action.getEvaCategoryType());
+
+
+
     }
 
     public void editEnds(final SetEvaValueUseAction action) {
-        action.getEvaCategorieProperty().set(this.useVariableTextArea.getTextArea().getText());
-        action.evaTypeProperty().set(comboBoxEvaType.getValue());
+        action.evaScoreTypeProperty().set(this.comboBoxEvaScoreType.getValue());
+        action.evaCategoryTypeProperty().set(this.comboBoxEvaCategoryType.getValue());
+
     }
 
     @Override

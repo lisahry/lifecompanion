@@ -34,6 +34,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     private String functionalCurrentKeyboard = "";
     private GridPartComponentI keyboardConsigne;
+    private GridPartComponentI keyboardEVA;
 
     private Map<KeyboardType, GridPartComponentI> keyboardsMap;
     private RandomType randomType;
@@ -82,6 +83,13 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 .map(c -> (GridPartComponentI) c)
                 .findAny().orElse(null);
 
+        this.keyboardEVA =this.configuration.getAllComponent().values().stream()
+                .filter(d -> d instanceof GridPartComponentI)
+                .filter(c -> c.nameProperty().get().startsWith("EVA"))
+                .map(c -> (GridPartComponentI) c)
+                .findAny().orElse(null);
+
+
         KeyboardType[] values = KeyboardType.values();
         keyboardsMap = new HashMap<>();
         for (KeyboardType keyboardType : values) {
@@ -103,7 +111,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     }
 
     public void startDailyEvaluation() {
-        randomType = RandomType.RANDOM_1; // TODO stocker dans properties
+        randomType = RandomType.RANDOM_1_1; // TODO stocker dans properties
         currentRandomIndex = 0;
         currentEvaluation = new WP2Evaluation(new Date());
         System.out.println(phraseSetFR);
@@ -130,6 +138,10 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     }
 
     public void nextDailyEvaluation() {
+        currentEvaluation.getEvaluations().add(currentKeyboardEvaluation);
+
+        currentKeyboardEvaluation = null;
+
         if (!goToNextKeyboardToEvaluate()) {
             System.out.println("c'est fini ");
         } else {
@@ -144,6 +156,15 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     }
 
+    public void setEvaFatigueScore(int score){
+        currentKeyboardEvaluation.setFatigueScore(score);
+        System.out.println("Fatigue avec score de "+ currentKeyboardEvaluation.getFatigueScore());
+    }
+    public void setEvaSatisfactionScore(Integer score){
+        currentKeyboardEvaluation.setSatisfactionScore(score);
+        System.out.println("Satisfaction avec score de "+  currentKeyboardEvaluation.getSatisfactionScore());
+
+    }
 
     public void startTraining() {
         // TODO: go to currentKeyboardEvaluation
@@ -151,12 +172,6 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
         // TODO: clean l'éditeur
         WritingStateController.INSTANCE.removeAll(WritingEventSource.USER_ACTIONS);
-
-        List<GridPartComponentI> EVA = this.configuration.getAllComponent().values().stream()
-                .filter(d -> d instanceof GridPartComponentI)
-                .filter(c -> c.nameProperty().get().startsWith("EVA"))
-                .map(c -> (GridPartComponentI) c)
-                .collect(Collectors.toList()); // trouver un moyen d'aller à l'EVA plus facilement
 
         // TODO : démarer le listener log
         WritingStateController.INSTANCE.currentWordProperty().addListener((obs, ov, nv) -> {
@@ -179,17 +194,13 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                // aller aux EVA
-                SelectionModeController.INSTANCE.goToGridPart(EVA.get(0));
+                // go to EVA interface
+                SelectionModeController.INSTANCE.goToGridPart(keyboardEVA);
                 //stop sentence display and clean editor
                 StopDislaySentence();
 
                 timer.cancel();
 
-                currentKeyboardEvaluation.setFatigueScore(50);
-                currentKeyboardEvaluation.setSatisfactionScore(10);
-                currentEvaluation.getEvaluations().add(currentKeyboardEvaluation);
-                currentKeyboardEvaluation = null;
 
                 System.out.println(JsonHelper.GSON.toJson(currentEvaluation));
             }
