@@ -27,13 +27,13 @@ import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2EvaluationContr
 
 import java.util.Map;
 
-public class NextDailyEvaluationUseAction extends SimpleUseActionImpl<GridPartKeyComponentI> {
+public class StartDailyTrainingUseAction extends SimpleUseActionImpl<GridPartKeyComponentI> {
 
-    public NextDailyEvaluationUseAction() {
+    public StartDailyTrainingUseAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "aac4aal.wp2.plugin.action.next.eval.name";
-        this.staticDescriptionID = "aac4aal.wp2.plugin.action.next.eval.description";
+        this.nameID = "aac4aal.wp2.plugin.action.start.eval.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.start.eval.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());
@@ -41,7 +41,7 @@ public class NextDailyEvaluationUseAction extends SimpleUseActionImpl<GridPartKe
 
     @Override
     public void execute(final UseActionEvent event, final Map<String, UseVariableI<?>> variables) {
-        AAC4AllWp2EvaluationController.INSTANCE.nextDailyEvaluation();
+        AAC4AllWp2EvaluationController.INSTANCE.startDailyTraining();
     }
 
 }

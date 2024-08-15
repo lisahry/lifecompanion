@@ -19,25 +19,21 @@
 
 package org.lifecompanion.plugin.aac4all.wp2.model.useaction;
 
-import org.lifecompanion.controller.textcomponent.WritingStateController;
-import org.lifecompanion.framework.commons.utils.lang.StringUtils;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
 import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
-import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.model.api.usevariable.UseVariableI;
 import org.lifecompanion.model.impl.categorizedelement.useaction.SimpleUseActionImpl;
 import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2EvaluationController;
-import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AAC4AllKeyOption;
 
 import java.util.Map;
 
-public class StartDailyEvaluationUseAction extends SimpleUseActionImpl<GridPartKeyComponentI> {
+public class NextDailyTrainingUseAction extends SimpleUseActionImpl<GridPartKeyComponentI> {
 
-    public StartDailyEvaluationUseAction() {
+    public NextDailyTrainingUseAction() {
         super(GridPartKeyComponentI.class);
         this.category = AAC4AllWp2SubCategories.TODO;
-        this.nameID = "aac4aal.wp2.plugin.action.start.eval.name";
-        this.staticDescriptionID = "aac4aal.wp2.plugin.action.start.eval.description";
+        this.nameID = "aac4aal.wp2.plugin.action.next.eval.name";
+        this.staticDescriptionID = "aac4aal.wp2.plugin.action.next.eval.description";
         this.configIconPath = "filler_icon_32px.png";
         this.parameterizableAction = false;
         this.variableDescriptionProperty().set(this.getStaticDescription());
@@ -45,7 +41,7 @@ public class StartDailyEvaluationUseAction extends SimpleUseActionImpl<GridPartK
 
     @Override
     public void execute(final UseActionEvent event, final Map<String, UseVariableI<?>> variables) {
-        AAC4AllWp2EvaluationController.INSTANCE.startDailyEvaluation();
+        AAC4AllWp2EvaluationController.INSTANCE.nextDailyTraining();
     }
 
 }

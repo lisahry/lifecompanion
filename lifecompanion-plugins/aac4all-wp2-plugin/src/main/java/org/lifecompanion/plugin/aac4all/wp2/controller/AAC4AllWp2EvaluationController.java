@@ -1,6 +1,7 @@
 package org.lifecompanion.plugin.aac4all.wp2.controller;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.collections.FXCollections;
 import org.lifecompanion.controller.io.JsonHelper;
 import org.lifecompanion.controller.resource.ResourceHelper;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
@@ -14,6 +15,7 @@ import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
 import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.EvaCategoryType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -108,13 +110,21 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     @Override
     public void modeStop(LCConfigurationI configuration) {
         this.configuration = null;
+       // this.randomType = null;
     }
 
-    public void startDailyEvaluation() {
-        randomType = RandomType.RANDOM_1_1; // TODO stocker dans properties
+    public void startDailyTraining() {
+        List<RandomType> randonTypePossible = FXCollections.observableList(Arrays.stream(RandomType.values()).toList());
+        int indexTrainingKeyboard = new Random().nextInt(randonTypePossible.size());
+        randomType = randonTypePossible.get(indexTrainingKeyboard); // TODO stocker dans properties
+
+        while (randomType.getKeyboards().size() != keyboardsMap.size()){
+            indexTrainingKeyboard = new Random().nextInt(randonTypePossible.size());
+            randomType = randonTypePossible.get(indexTrainingKeyboard);
+        }
+
         currentRandomIndex = 0;
         currentEvaluation = new WP2Evaluation(new Date());
-        System.out.println(phraseSetFR);
 
         goToNextKeyboardToEvaluate();
 
@@ -137,13 +147,14 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         UseVariableController.INSTANCE.requestVariablesUpdate();
     }
 
-    public void nextDailyEvaluation() {
+    public void nextDailyTraining() {
         currentEvaluation.getEvaluations().add(currentKeyboardEvaluation);
-
+        System.out.println(JsonHelper.GSON.toJson(currentEvaluation));
         currentKeyboardEvaluation = null;
 
         if (!goToNextKeyboardToEvaluate()) {
             System.out.println("c'est fini ");
+            //  Platform.exit(); ???
         } else {
             SelectionModeController.INSTANCE.goToGridPart(keyboardConsigne);
         }
@@ -202,7 +213,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 timer.cancel();
 
 
-                System.out.println(JsonHelper.GSON.toJson(currentEvaluation));
+                //System.out.println(JsonHelper.GSON.toJson(currentEvaluation));
             }
         };
         timer.schedule(timerTask, EVALUATION_DURATION_MS);
