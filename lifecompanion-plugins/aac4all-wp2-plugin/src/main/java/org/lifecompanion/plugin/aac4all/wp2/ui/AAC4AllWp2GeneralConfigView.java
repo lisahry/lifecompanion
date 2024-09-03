@@ -19,23 +19,37 @@
 
 package org.lifecompanion.plugin.aac4all.wp2.ui;
 
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2Plugin;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
+import org.lifecompanion.plugin.aac4all.wp2.model.logs.RandomType;
 import org.lifecompanion.ui.app.generalconfiguration.GeneralConfigurationStepViewI;
+import org.lifecompanion.ui.controlsfx.control.ToggleSwitch;
+import org.lifecompanion.util.javafx.FXControlUtils;
+
+import java.util.Arrays;
+
+import static javafx.collections.FXCollections.*;
+import static org.lifecompanion.plugin.aac4all.wp2.model.logs.RandomType.*;
 
 public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralConfigurationStepViewI {
 
     static final String STEP_ID = "AAC4AllWp2GeneralConfigView";
 
     private TextField textFieldPatientId;
+    private ComboBox<RandomType> comboBoxRandomType;
 
     public AAC4AllWp2GeneralConfigView() {
         initAll();
@@ -77,10 +91,24 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
         this.textFieldPatientId = new TextField();
 
         gridPaneConfiguration.add(new Label(Translation.getText("aac4all.wp2.plugin.general.config.view.field.patient.id")), 0, gridRowIndex);
-        gridPaneConfiguration.add(textFieldPatientId, 1, gridRowIndex);
+        gridPaneConfiguration.add(textFieldPatientId, 1, gridRowIndex++);
 
         gridPaneConfiguration.setPadding(new Insets(GeneralConfigurationStepViewI.PADDING));
         this.setCenter(gridPaneConfiguration);
+
+
+        //TODO : liste des random type possible pour l'evaluation.
+
+        comboBoxRandomType = new ComboBox<>();
+        //comboBoxRandomType.
+       /* HBox.setHgrow(comboBoxRandomType, Priority.ALWAYS);
+        comboBoxRandomType.setMaxWidth(Double.MAX_VALUE);
+*/
+
+       // gridPaneConfiguration.add(new Label(Translation.getText("aac4all.wp2.plugin.general.config.combo.box.random.type")), 0, gridRowIndex);
+        //gridPaneConfiguration.add(comboBoxRandomType, 1, gridRowIndex);
+
+
     }
 
     @Override
