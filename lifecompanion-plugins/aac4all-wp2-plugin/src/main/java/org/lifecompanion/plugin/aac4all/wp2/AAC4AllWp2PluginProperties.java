@@ -16,16 +16,21 @@ import java.util.Map;
 public class AAC4AllWp2PluginProperties extends AbstractPluginConfigProperties {
 
     private final StringProperty patientId;
+    private final StringProperty randomTypeEval;
 
     protected AAC4AllWp2PluginProperties(ObjectProperty<LCConfigurationI> parentConfiguration) {
         super(parentConfiguration);
         patientId = new SimpleStringProperty();
+        randomTypeEval = new SimpleStringProperty();
     }
 
     public StringProperty patientIdProperty() {
         return patientId;
     }
 
+    public StringProperty getRandomTypeEval(){
+        return randomTypeEval;
+    }
     @Override
     public Element serialize(final IOContextI context) {
         return XMLObjectSerializer.serializeInto(AAC4AllWp2PluginProperties.class, this, new Element("AAC4AllWp2PluginProperties"));

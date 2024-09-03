@@ -100,13 +100,11 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
         //TODO : liste des random type possible pour l'evaluation.
 
         comboBoxRandomType = new ComboBox<>();
-        //comboBoxRandomType.
-       /* HBox.setHgrow(comboBoxRandomType, Priority.ALWAYS);
-        comboBoxRandomType.setMaxWidth(Double.MAX_VALUE);
-*/
+        comboBoxRandomType.getItems().addAll(RandomType.values());
 
-       // gridPaneConfiguration.add(new Label(Translation.getText("aac4all.wp2.plugin.general.config.combo.box.random.type")), 0, gridRowIndex);
-        //gridPaneConfiguration.add(comboBoxRandomType, 1, gridRowIndex);
+        gridPaneConfiguration.add(new Label(Translation.getText("aac4all.wp2.plugin.general.config.combo.box.random.type")), 0, gridRowIndex);
+        gridPaneConfiguration.add(comboBoxRandomType, 1, gridRowIndex);
+
 
 
     }
@@ -119,6 +117,7 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
     @Override
     public void initBinding() {
 
+
     }
 
     private LCConfigurationI configuration;
@@ -127,6 +126,7 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
     public void saveChanges() {
         AAC4AllWp2PluginProperties pluginConfigProperties = configuration.getPluginConfigProperties(AAC4AllWp2Plugin.ID, AAC4AllWp2PluginProperties.class);
         pluginConfigProperties.patientIdProperty().set(textFieldPatientId.getText());
+        pluginConfigProperties.getRandomTypeEval().set(comboBoxRandomType.getValue().getName());
     }
 
     @Override
@@ -134,6 +134,7 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
         this.configuration = model;
         AAC4AllWp2PluginProperties pluginConfigProperties = configuration.getPluginConfigProperties(AAC4AllWp2Plugin.ID, AAC4AllWp2PluginProperties.class);
         textFieldPatientId.setText(pluginConfigProperties.patientIdProperty().get());
+
     }
 
     @Override

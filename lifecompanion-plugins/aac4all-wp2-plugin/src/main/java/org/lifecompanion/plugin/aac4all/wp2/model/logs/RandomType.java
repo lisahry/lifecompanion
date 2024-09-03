@@ -1,6 +1,7 @@
 package org.lifecompanion.plugin.aac4all.wp2.model.logs;
 
 import java.util.List;
+import java.util.Random;
 
 public enum RandomType {
    RANDOM_REOLOC_1(List.of(KeyboardType.STATIC, KeyboardType.REOLOC_G,KeyboardType.REOLOC_L),"RéoLoc 1"),
@@ -25,6 +26,16 @@ public enum RandomType {
         return keyboards;
     }
     public String getName(){ return name;}
+
+    public static RandomType fromName(String name){
+        for(RandomType type : RandomType.values()){
+            if(type.getName().equalsIgnoreCase(name)){
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No enum constant with name " + name);
+
+    }
 
     public void set(RandomType value) {
     }

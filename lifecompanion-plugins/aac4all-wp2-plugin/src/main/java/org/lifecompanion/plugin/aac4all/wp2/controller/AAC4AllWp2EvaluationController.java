@@ -78,9 +78,6 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 phraseSetFR.add(StringUtils.trimToEmpty(scan.nextLine()));
             }
         }
-
-
-
     }
 
     public String getCurrentSentence() {
@@ -153,7 +150,6 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         currentEvaluation = new WP2Evaluation(new Date(),patientID.toString());
 
         goToNextKeyboardToEvaluate();
-
     }
 
     private boolean goToNextKeyboardToEvaluate() {
@@ -192,7 +188,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     public void startEvaluation() {
         // TODO : lancer les claviers en fonction de RandomType donnée dans les réglages.
-
+        randomType= RandomType.fromName(currentAAC4AllWp2PluginProperties.getRandomTypeEval().getValue());
 
         currentRandomIndex = 0;
         currentEvaluation = new WP2Evaluation(new Date(),patientID.toString());
