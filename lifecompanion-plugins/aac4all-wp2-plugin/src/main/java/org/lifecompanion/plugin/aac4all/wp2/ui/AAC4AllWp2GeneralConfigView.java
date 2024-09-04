@@ -134,6 +134,7 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
         this.configuration = model;
         AAC4AllWp2PluginProperties pluginConfigProperties = configuration.getPluginConfigProperties(AAC4AllWp2Plugin.ID, AAC4AllWp2PluginProperties.class);
         textFieldPatientId.setText(pluginConfigProperties.patientIdProperty().get());
+        comboBoxRandomType.setValue(RandomType.fromName(pluginConfigProperties.getRandomTypeEval().getValue()));
 
     }
 
@@ -141,6 +142,7 @@ public class AAC4AllWp2GeneralConfigView extends BorderPane implements GeneralCo
     public void unbind(LCConfigurationI model) {
         this.configuration = null;
         textFieldPatientId.setText(null);
+        comboBoxRandomType.setValue(null);
     }
 
     @Override
