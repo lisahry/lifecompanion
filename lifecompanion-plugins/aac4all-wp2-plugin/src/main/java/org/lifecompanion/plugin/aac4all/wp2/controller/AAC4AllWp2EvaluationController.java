@@ -1,8 +1,11 @@
 package org.lifecompanion.plugin.aac4all.wp2.controller;
 
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.util.converter.LocalDateTimeStringConverter;
 import org.lifecompanion.controller.io.JsonHelper;
 import org.lifecompanion.controller.resource.ResourceHelper;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
@@ -10,9 +13,11 @@ import org.lifecompanion.controller.textcomponent.WritingStateController;
 import org.lifecompanion.controller.usevariable.UseVariableController;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.framework.commons.utils.lang.StringUtils;
+import org.lifecompanion.model.api.configurationcomponent.GridComponentI;
 import org.lifecompanion.model.api.configurationcomponent.GridPartComponentI;
 import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
+import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2Plugin;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
@@ -20,31 +25,38 @@ import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
 import tobii.Tobii;
 
 
+import javafx.beans.value.ChangeListener;
 import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 
 public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     INSTANCE;
 
-    private final long TRAINING_DURATION_MS = (long) 2 * 60 * 1000; //20 sec à passer en 10 min
+    private final long TRAINING_DURATION_MS = (long) 30 * 1000; //20 sec à passer en 10 min
     private final long EVALUATION_DURATION_MS = (long) 15 * 60 * 1000;//15 min
 
+    private String filePathLogs;
     private AAC4AllWp2PluginProperties currentAAC4AllWp2PluginProperties;
     private BooleanProperty evaluationRunning;
 
     private WP2Evaluation currentEvaluation;
     private WP2KeyboardEvaluation currentKeyboardEvaluation;
+    private WP2SentenceEvaluation currentSentenceEvaluation;
+
     private final List<String> phraseSetFR;
 
     private String currentSentence = "";
@@ -91,11 +103,35 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         return currentSentence;
     }
 
+
     private LCConfigurationI configuration;
 
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> scheduledEyetrackingTask;
 
+    private ChangeListener highlightCase = new javafx.beans.value.ChangeListener<GridPartComponentI>() {
+        @Override
+        public void changed(ObservableValue<? extends GridPartComponentI> observable, GridPartComponentI oldValue, GridPartComponentI newValue) {
+            if(newValue !=null){
+                HighLightLog log = new HighLightLog( newValue.nameProperty().getValue(), newValue.columnProperty().getValue());
+                currentSentenceEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.HIGHLIGHT,log));
+
+            }
+        }
+    };
+    private BiConsumer<GridComponentI, ComponentToScanI> validationRow = new BiConsumer<GridComponentI, ComponentToScanI>() {
+        @Override
+        public void accept(GridComponentI gridComponentI, ComponentToScanI componentToScanI) {
+            if (componentToScanI !=null){
+                String rowValues = "";
+                for (int i = 0; i < componentToScanI.getComponents().size(); i++) {// attention car pout l'espace on a Case(1,1) on pourrait le remplavcer à la main par _ ou par " " par exemple
+                    rowValues = rowValues + componentToScanI.getPartIn(gridComponentI, i).nameProperty().getValue()+ "-";}
+                System.out.println("row Values " + rowValues);
+                ValidationLog log = new ValidationLog(rowValues, componentToScanI.getIndex());
+                currentSentenceEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.VALIDATION, log));
+                }
+        }
+    };
 
     @Override
     public void modeStart(LCConfigurationI configuration) {
@@ -103,6 +139,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         currentAAC4AllWp2PluginProperties = configuration.getPluginConfigProperties(AAC4AllWp2Plugin.ID, AAC4AllWp2PluginProperties.class);
         patientID = currentAAC4AllWp2PluginProperties.patientIdProperty();
 
+        //TODO : nom de fichier log variable avec date id et patient
+        filePathLogs =  String.format("%s%s_%s.json","C:\\Users\\lhoiry\\Documents\\lifecompanion-main\\lifecompanion-plugins\\aac4all-wp2-plugin\\src\\main\\resources\\text\\", patientID.getValue(), LocalDate.now().toString());
 
         this.keyboardConsigne = this.configuration.getAllComponent().values().stream()
                 .filter(d -> d instanceof GridPartComponentI)
@@ -143,7 +181,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     public void modeStop(LCConfigurationI configuration) {
         this.configuration = null;
         this.currentAAC4AllWp2PluginProperties = null;
-       // this.randomType = null;
+        // this.randomType = null;
+        //TODO ; vide tout ce qui est rempli dans modeStart()
     }
 
     public void startDailyTraining() {
@@ -181,16 +220,22 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         UseVariableController.INSTANCE.requestVariablesUpdate();
     }
 
-    public void nextDailyTraining() {
-        currentEvaluation.getEvaluations().add(currentKeyboardEvaluation);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File ("C:\\Users\\lhoiry\\Documents\\lifecompanion-main\\lifecompanion-plugins\\aac4all-wp2-plugin\\src\\main\\resources\\text\\monfichierlogtest.json")))){
+
+    public void recordLogs(){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File (filePathLogs)))){
             writer.write(JsonHelper.GSON.toJson(currentEvaluation));
         }catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    public void nextDailyTraining() {
+        currentEvaluation.getEvaluations().add(currentKeyboardEvaluation);
+
+        recordLogs();
 
         currentKeyboardEvaluation = null;
-            //TODO le fichier à enregistrer ici
+
         if (!goToNextKeyboardToEvaluate()) {
             SelectionModeController.INSTANCE.goToGridPart(endGrid);
         } else {
@@ -224,64 +269,54 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
         if (currentKeyboardEvaluation != null) {
 
-            SelectionModeController.INSTANCE.addScannedPartChangedListeners((gridComponentI, componentToScanI) -> {
-                if (componentToScanI !=null){
-                    ValidationLog log = new ValidationLog(componentToScanI.toString(), componentToScanI.getIndex());
-                    currentKeyboardEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.VALIDATION, log));
+           SelectionModeController.INSTANCE.addScannedPartChangedListeners(validationRow);
+           SelectionModeController.INSTANCE.currentOverPartProperty().addListener(highlightCase);
 
-                    System.out.println("Sélection de la ligne :" + componentToScanI.getComponents());
-                }
-            });
 
-            SelectionModeController.INSTANCE.currentOverPartProperty().addListener((obs, ov, nv) -> {
-                if(nv !=null){
-                    float[] position = Tobii.gazePosition();
-                    float rawGazeX = position[0];
-                    float rawGazeY = position[1];
-                    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-                    int gazeX = (int) (rawGazeX * screenSize.getWidth());
-                    int gazeY = (int) (rawGazeY * screenSize.getHeight());
-                    System.out.println(gazeX);
-                    System.out.println(gazeY);
-                    System.out.println("parcours de la case :" + nv.toString());
-                }
-            });
-
-            WritingStateController.INSTANCE.currentWordProperty().addListener((obs, ov, nv) -> {
-                //TODO : enregistrer le fichier à chaque nouveau mot saisie
-                System.out.println("un mot est écrit "+nv);
-            });
-
-                //TODO enregistrer la position du regards toutes les
             scheduler = Executors.newScheduledThreadPool(1);
             scheduledEyetrackingTask = scheduler.scheduleAtFixedRate(() -> {
                 float[] position = Tobii.gazePosition();
                 float rawGazeX = position[0];
                 float rawGazeY = position[1];
-                //Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-                //int gazeX = (int) (rawGazeX * screenSize.getWidth());
-                //int gazeY = (int) (rawGazeY * screenSize.getHeight());
+                /*Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                int gazeX = (int) (rawGazeX * screenSize.getWidth());
+                int gazeY = (int) (rawGazeY * screenSize.getHeight());
                 System.out.println(rawGazeX);
-                System.out.println(rawGazeY);
-                //currentKeyboardEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(gazeX, gazeY)));
-            }, 0, 2, TimeUnit.SECONDS); //0, 20, TimeUnit.MILLISECONDS);
+                System.out.println(rawGazeY);*/
+             currentSentenceEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(rawGazeX, rawGazeY)));
+            }, 0, 20, TimeUnit.SECONDS); //0, 20, TimeUnit.MILLISECONDS);
 
+
+            /*
+            WritingStateController.INSTANCE.currentWordProperty().addListener((obs, ov, nv) -> {
+                //TODO : enregistrer le fichier à chaque nouveau mot saisie
+                System.out.println("un mot est écrit "+nv);
+            });
+            */
 
 
         }
     }
-
     public void stopLogListener(){
         //TODO stopper les
 
+
+        //recupérer l'état final de l'éditeur de texte avant clean
+        currentSentenceEvaluation.setTextEntry(WritingStateController.INSTANCE.getLastSentence());
 
         //TODO stop eyetracking logs
         if (scheduledEyetrackingTask != null && !scheduledEyetrackingTask.isCancelled()) {
             scheduler.shutdown();
             System.out.println("Tâche arrêtée");
         }
-    }
 
+        currentSentenceEvaluation=null;
+
+        SelectionModeController.INSTANCE.removeScannedPartChangedListeners(validationRow);
+        SelectionModeController.INSTANCE.currentOverPartProperty().removeListener(highlightCase);
+       // SelectionModeController.INSTANCE.removeScannedPartChangedListeners() == supprimer le log des sélections de ligne;
+    }
+    
     public void startTraining() {
 
         // TODO: go to currentKeyboardEvaluation
@@ -290,26 +325,11 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         // TODO: clean l'éditeur
         WritingStateController.INSTANCE.removeAll(WritingEventSource.USER_ACTIONS);
 
-        // TODO : démarer le listener log
-        //startLogListener();
-        scheduler = Executors.newScheduledThreadPool(1);
-        scheduledEyetrackingTask = scheduler.scheduleAtFixedRate(() -> {
-            float[] position = Tobii.gazePosition();
-            float rawGazeX = position[0];
-            float rawGazeY = position[1];
-            //Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            //int gazeX = (int) (rawGazeX * screenSize.getWidth());
-            //int gazeY = (int) (rawGazeY * screenSize.getHeight());
-            System.out.println(rawGazeX);
-            System.out.println(rawGazeY);
-            //currentKeyboardEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(gazeX, gazeY)));
-        }, 0, 2, TimeUnit.SECONDS);
-
-
-
-
         //TODO : affiche les phrases à saisir
         StartDislaySentence();
+
+        // TODO : démarer le listener log
+        startLogListener();
 
         // chrono 10 mins
         Timer timer = new Timer();
@@ -320,8 +340,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 //TODO stopper le listener validation, hightligh etc
                 stopLogListener();
 
+                recordLogs();
 
-               
                 // go to EVA interface
                 SelectionModeController.INSTANCE.goToGridPart(keyboardEVA);
                 //stop sentence display and clean editor
@@ -335,13 +355,23 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
 
     public void StartDislaySentence() {
-        currentKeyboardEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.CURRENT_ENTRY,WritingStateController.INSTANCE.getLastSentence()));
 
-        currentSentence = phraseSetFR.get(new Random().nextInt(phraseSetFR.size()));
-        UseVariableController.INSTANCE.requestVariablesUpdate();
-        WritingStateController.INSTANCE.removeAll(WritingEventSource.USER_ACTIONS);
-
-        currentKeyboardEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.SENTENCE,currentSentence));
+        if (currentSentenceEvaluation==null) {
+            currentSentenceEvaluation = new WP2SentenceEvaluation(currentSentence, new Date());
+            currentKeyboardEvaluation.getSentenceLogs().add(currentSentenceEvaluation);
+            currentSentence = phraseSetFR.get(new Random().nextInt(phraseSetFR.size()));
+            UseVariableController.INSTANCE.requestVariablesUpdate();
+        }
+        else {
+            recordLogs();
+            currentSentenceEvaluation.setTextEntry(WritingStateController.INSTANCE.getLastSentence());
+            currentSentence = phraseSetFR.get(new Random().nextInt(phraseSetFR.size()));
+            UseVariableController.INSTANCE.requestVariablesUpdate();
+            currentSentenceEvaluation = new WP2SentenceEvaluation(currentSentence, new Date());
+            currentKeyboardEvaluation.getSentenceLogs().add(currentSentenceEvaluation);
+            WritingStateController.INSTANCE.removeAll(WritingEventSource.USER_ACTIONS);
+            currentSentenceEvaluation.setSentence(currentSentence);
+        }
     }
 
     public void StopDislaySentence() {
