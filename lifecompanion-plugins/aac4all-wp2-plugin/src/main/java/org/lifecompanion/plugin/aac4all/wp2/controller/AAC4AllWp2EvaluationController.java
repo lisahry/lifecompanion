@@ -1,6 +1,7 @@
 package org.lifecompanion.plugin.aac4all.wp2.controller;
 
-import javafx.beans.Observable;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -46,9 +48,12 @@ import java.util.function.BiConsumer;
 public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     INSTANCE;
 
-    private final long TRAINING_DURATION_MS = (long) 30 * 1000; //20 sec à passer en 10 min
+    private Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,new LocalDateTimeAdapter()).setPrettyPrinting().create();
+
+    private final long TRAINING_DURATION_MS = (long) 50 * 1000; //20 sec à passer en 10 min
     private final long EVALUATION_DURATION_MS = (long) 15 * 60 * 1000;//15 min
 
+    private boolean evaluationMode= false;
     private String filePathLogs;
     private AAC4AllWp2PluginProperties currentAAC4AllWp2PluginProperties;
     private BooleanProperty evaluationRunning;
@@ -114,7 +119,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         public void changed(ObservableValue<? extends GridPartComponentI> observable, GridPartComponentI oldValue, GridPartComponentI newValue) {
             if(newValue !=null){
                 HighLightLog log = new HighLightLog( newValue.nameProperty().getValue(), newValue.columnProperty().getValue());
-                currentSentenceEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.HIGHLIGHT,log));
+                currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.HIGHLIGHT,log));
 
             }
         }
@@ -126,9 +131,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 String rowValues = "";
                 for (int i = 0; i < componentToScanI.getComponents().size(); i++) {// attention car pout l'espace on a Case(1,1) on pourrait le remplavcer à la main par _ ou par " " par exemple
                     rowValues = rowValues + componentToScanI.getPartIn(gridComponentI, i).nameProperty().getValue()+ "-";}
-                System.out.println("row Values " + rowValues);
                 ValidationLog log = new ValidationLog(rowValues, componentToScanI.getIndex());
-                currentSentenceEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.VALIDATION, log));
+                currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.VALIDATION, log));
                 }
         }
     };
@@ -195,7 +199,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             randomType = randonTypePossible.get(indexTrainingKeyboard);
         }
         currentRandomIndex = 0;
-        currentEvaluation = new WP2Evaluation(new Date(),patientID.toString());
+        currentEvaluation = new WP2Evaluation(LocalDateTime.now(),patientID.toString());
 
         goToNextKeyboardToEvaluate();
 
@@ -223,7 +227,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     public void recordLogs(){
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File (filePathLogs)))){
-            writer.write(JsonHelper.GSON.toJson(currentEvaluation));
+            writer.write(gson.toJson(currentEvaluation));
+            //writer.write(JsonHelper.GSON.toJson(currentEvaluation));
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -243,16 +248,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         }
     }
 
-    public void startEvaluation() {
-        // TODO : lancer les claviers en fonction de RandomType donnée dans les réglages.
-        randomType= RandomType.fromName(currentAAC4AllWp2PluginProperties.getRandomTypeEval().getValue());
 
-        currentRandomIndex = 0;
-        currentEvaluation = new WP2Evaluation(new Date(),patientID.toString());
-        goToNextKeyboardToEvaluate();
-
-
-    }
 
     public void setEvaFatigueScore(int score){
         currentKeyboardEvaluation.setFatigueScore(score);
@@ -283,7 +279,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 int gazeY = (int) (rawGazeY * screenSize.getHeight());
                 System.out.println(rawGazeX);
                 System.out.println(rawGazeY);*/
-             currentSentenceEvaluation.getLogs().add(new WP2Logs(new Date(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(rawGazeX, rawGazeY)));
+             currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(rawGazeX, rawGazeY)));
             }, 0, 20, TimeUnit.SECONDS); //0, 20, TimeUnit.MILLISECONDS);
 
 
@@ -316,8 +312,27 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         SelectionModeController.INSTANCE.currentOverPartProperty().removeListener(highlightCase);
        // SelectionModeController.INSTANCE.removeScannedPartChangedListeners() == supprimer le log des sélections de ligne;
     }
-    
+
+
+    public void startEvaluation() {
+        evaluationMode=true;
+
+        // TODO : lancer les claviers en fonction de RandomType donnée dans les réglages.
+        randomType= RandomType.fromName(currentAAC4AllWp2PluginProperties.getRandomTypeEval().getValue());
+
+
+        currentRandomIndex = 0;
+        currentEvaluation = new WP2Evaluation(LocalDateTime.now(),patientID.toString());
+        goToNextKeyboardToEvaluate();
+
+    }
+
     public void startTraining() {
+        long time;
+        if(evaluationMode){time= EVALUATION_DURATION_MS;
+            System.out.println("mode évaluation");}
+        else{time=TRAINING_DURATION_MS;
+            System.out.println("mode training");}
 
         // TODO: go to currentKeyboardEvaluation
         SelectionModeController.INSTANCE.goToGridPart(currentKeyboard);
@@ -350,7 +365,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
             }
         };
-        timer.schedule(timerTask, TRAINING_DURATION_MS);
+        timer.schedule(timerTask, time);
     }
 
 

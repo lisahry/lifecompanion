@@ -24,7 +24,7 @@ public class Tobii {
                 e.printStackTrace();
                 errorReported = true;
             }
-            return new float[]{0.5f, 0.5f};
+            return new float[]{-1f, -1f};
         }
     }
 
