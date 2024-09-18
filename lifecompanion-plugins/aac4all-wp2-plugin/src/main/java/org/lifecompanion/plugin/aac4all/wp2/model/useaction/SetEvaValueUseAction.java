@@ -20,18 +20,21 @@
 package org.lifecompanion.plugin.aac4all.wp2.model.useaction;
 
 import javafx.beans.property.*;
+import javafx.scene.paint.Color;
 import org.jdom2.Element;
 import org.lifecompanion.framework.commons.fx.io.XMLGenericProperty;
 import org.lifecompanion.framework.commons.fx.io.XMLObjectSerializer;
 import org.lifecompanion.framework.commons.fx.translation.TranslationFX;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
+import org.lifecompanion.model.api.categorizedelement.useaction.UseActionManagerI;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
+import org.lifecompanion.model.api.configurationcomponent.DisplayableComponentI;
+import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
+import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.model.api.io.IOContextI;
 import org.lifecompanion.model.api.usevariable.UseVariableI;
 import org.lifecompanion.model.impl.categorizedelement.useaction.SimpleUseActionImpl;
 import org.lifecompanion.model.impl.exception.LCException;
-import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2Controller;
-import org.lifecompanion.plugin.aac4all.wp2.model.logs.WP2KeyboardEvaluation;
 import org.lifecompanion.plugin.aac4all.wp2.controller.AAC4AllWp2EvaluationController;
 
 import java.util.Map;
@@ -58,7 +61,7 @@ public class SetEvaValueUseAction extends SimpleUseActionImpl<UseActionTriggerCo
         this.nameID = "todo-eva";
         this.staticDescriptionID = "todo";
         this.configIconPath = "filler_icon_32px.png";
-        this.variableDescriptionProperty().bind(TranslationFX.getTextBinding("action.simple.set.eva.value.variable.description", this.evaCategoryType,this.evaScoreType));
+        this.variableDescriptionProperty().bind(TranslationFX.getTextBinding("action.simple.set.eva.value.variable.description", this.evaCategoryType, this.evaScoreType));
 
     }
 
@@ -90,16 +93,43 @@ public class SetEvaValueUseAction extends SimpleUseActionImpl<UseActionTriggerCo
     public void execute(final UseActionEvent event, final Map<String, UseVariableI<?>> variables) {
         if (this.evaCategoryType.get() != null) {
             if (evaCategoryType.get() == EvaCategoryType.FATIGUE) {
-                if(evaScoreType.get()!= null){
-                // TODO
+                if (evaScoreType.get() != null) {
+                    // TODO
+                    updateColor();
                     //System.out.println("Fatigue avec score de "+evaScoreType.get().getScore());
                     AAC4AllWp2EvaluationController.INSTANCE.setEvaFatigueScore(evaScoreType.get().getScore());
                 }
             } else if (evaCategoryType.get() == EvaCategoryType.SATISFACTION) {
                 // TODO
-               // System.out.println("Satisfaction avec score de "+ evaScoreType.get().getScore());
+                // System.out.println("Satisfaction avec score de "+ evaScoreType.get().getScore());
+                updateColor();
                 AAC4AllWp2EvaluationController.INSTANCE.setEvaSatisfactionScore(evaScoreType.get().getScore());
             }
+        }
+    }
+
+    private void updateColor() {
+        emptyAllColors();
+        setColorOn(parentComponentProperty().get(), Color.RED);
+    }
+
+    private void emptyAllColors() {
+        UseActionTriggerComponentI parentComp = parentComponentProperty().get();
+        if (parentComp != null && parentComp.configurationParentProperty().get() != null) {
+            LCConfigurationI configuration = parentComp.configurationParentProperty().get();
+            configuration.getAllComponent().values().stream().filter(c -> c instanceof UseActionTriggerComponentI).forEach(c -> {
+                UseActionManagerI actionManager = ((UseActionTriggerComponentI) c).getActionManager();
+                SetEvaValueUseAction setEvaValueUseAction = actionManager.getFirstActionOfType(UseActionEvent.ACTIVATION, SetEvaValueUseAction.class);
+                if (setEvaValueUseAction != null && setEvaValueUseAction.getEvaCategoryType() == this.getEvaCategoryType() && c != parentComp) {
+                    setColorOn(c, null);
+                }
+            });
+        }
+    }
+
+    private void setColorOn(Object comp, Color color) {
+        if (comp instanceof GridPartKeyComponentI) {
+            ((GridPartKeyComponentI) comp).getKeyStyle().backgroundColorProperty().forced().setValue(color);
         }
     }
 

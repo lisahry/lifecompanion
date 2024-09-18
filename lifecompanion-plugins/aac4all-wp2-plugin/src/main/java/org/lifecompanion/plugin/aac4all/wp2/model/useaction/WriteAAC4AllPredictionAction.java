@@ -22,14 +22,12 @@ package org.lifecompanion.plugin.aac4all.wp2.model.useaction;
 import org.lifecompanion.controller.textcomponent.WritingStateController;
 import org.lifecompanion.framework.commons.utils.lang.StringUtils;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
-import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
 import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.model.api.usevariable.UseVariableI;
 import org.lifecompanion.model.impl.categorizedelement.useaction.SimpleUseActionImpl;
-import org.lifecompanion.model.impl.configurationcomponent.keyoption.AutoCharKeyOption;
-import org.lifecompanion.model.impl.configurationcomponent.keyoption.CustomCharKeyOption;
-import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AAC4AllKeyOption;
+import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AAC4AllKeyOptionReolocL;
+import org.lifecompanion.plugin.aac4all.wp2.model.keyoption.AbstractAAC4AllKeyOption;
 
 import java.util.Map;
 
@@ -51,8 +49,8 @@ public class WriteAAC4AllPredictionAction extends SimpleUseActionImpl<GridPartKe
         GridPartKeyComponentI parentKey = (GridPartKeyComponentI) this.parentComponentProperty().get();
         if (parentKey != null) {
             String prediction = null;
-            if (parentKey.keyOptionProperty().get() instanceof AAC4AllKeyOption) {
-                AAC4AllKeyOption predOption = (AAC4AllKeyOption) parentKey.keyOptionProperty().get();
+            if (parentKey.keyOptionProperty().get() instanceof AbstractAAC4AllKeyOption) {
+                AbstractAAC4AllKeyOption predOption = (AbstractAAC4AllKeyOption) parentKey.keyOptionProperty().get();
                 prediction = predOption.predictionProperty().get();
             }
             if (prediction != null) {
