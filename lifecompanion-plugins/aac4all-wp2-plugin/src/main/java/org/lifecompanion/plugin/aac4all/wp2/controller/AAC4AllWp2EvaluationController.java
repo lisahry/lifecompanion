@@ -7,6 +7,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.util.converter.LocalDateTimeStringConverter;
+import org.lifecompanion.controller.categorizedelement.useaction.UseActionController;
 import org.lifecompanion.controller.io.JsonHelper;
 import org.lifecompanion.controller.resource.ResourceHelper;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
@@ -14,8 +15,10 @@ import org.lifecompanion.controller.textcomponent.WritingStateController;
 import org.lifecompanion.controller.usevariable.UseVariableController;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.framework.commons.utils.lang.StringUtils;
+import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
 import org.lifecompanion.model.api.configurationcomponent.GridComponentI;
 import org.lifecompanion.model.api.configurationcomponent.GridPartComponentI;
+import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
 import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
@@ -269,6 +272,17 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
             SelectionModeController.INSTANCE.addScannedPartChangedListeners(validationRow);
             SelectionModeController.INSTANCE.currentOverPartProperty().addListener(highlightCase);
+            // TODO : penser à supprimer les deux nouveaux listeners lorsqu'on termine le log
+            SelectionModeController.INSTANCE.addOverScannedPartChangedListener(rowScanned -> {
+                if (rowScanned != null)
+                    System.out.println("Scan de la ligne avec " + rowScanned.getComponents().size() + " éléments");
+            });
+            UseActionController.INSTANCE.addActionExecutionListener((component, event) -> {
+                if (component instanceof GridPartKeyComponentI && event == UseActionEvent.ACTIVATION) {
+                    GridPartKeyComponentI key = (GridPartKeyComponentI) component;
+                    System.out.println("Case activée " + key.textContentProperty().get());
+                }
+            });
 
 
             scheduler = Executors.newScheduledThreadPool(1);
