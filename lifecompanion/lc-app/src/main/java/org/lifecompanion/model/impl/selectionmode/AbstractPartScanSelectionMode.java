@@ -93,13 +93,18 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
             }
         } else {
             this.primaryIndex++;
-            this.currentComponentToScan = this.components.get(this.primaryIndex);
+            setCurrentComponentToScan(this.components.get(this.primaryIndex));
         }
+    }
+
+    private void setCurrentComponentToScan(ComponentToScanI componentToScan) {
+        this.currentComponentToScan = componentToScan;
+        SelectionModeController.INSTANCE.fireOverScannedPartChangedListeners(componentToScan);
     }
 
     private void setSelectedComponentToScan(ComponentToScanI currentComponentToScan) {
         this.selectedComponentToScan = currentComponentToScan;
-        SelectionModeController.INSTANCE.fireScannedPartChangedListeners(currentGrid.get(),selectedComponentToScan);
+        SelectionModeController.INSTANCE.fireScannedPartChangedListeners(currentGrid.get(), selectedComponentToScan);
     }
 
     @Override
@@ -107,7 +112,6 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
         super.scannedGridChanged(gridP);
         this.setSelectedComponentToScan(null);
     }
-
 
 
     @Override
@@ -142,7 +146,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
         if (this.checkRestartAndMaxScanValid()) {
             this.primaryIndex = 0;
             this.secondaryIndex = 0;
-            this.currentComponentToScan = this.components.get(this.primaryIndex);
+            setCurrentComponentToScan(this.components.get(this.primaryIndex));
             this.setSelectedComponentToScan(null);
             this.updateCurrentComponent(true);
         }
@@ -157,7 +161,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
     private void reinitParts() {
         this.primaryIndex = 0;
         this.secondaryIndex = 0;
-        this.currentComponentToScan = null;
+        this.setCurrentComponentToScan(null);
         this.setSelectedComponentToScan(null);
         this.deselectAndUpdateCurrentPartOnNextPlay = false;
     }
@@ -234,7 +238,7 @@ public abstract class AbstractPartScanSelectionMode<T extends AbstractPartScanSe
                     found = true;
                     //Select parts to scan
                     this.primaryIndex = i;
-                    this.currentComponentToScan = componentsInside;
+                    this.setCurrentComponentToScan(componentsInside);
                     //Select part inside if needed
                     if (componentsInside.getComponents().size() > 1) {
                         this.setSelectedComponentToScan(componentsInside);

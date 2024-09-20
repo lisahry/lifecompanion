@@ -30,6 +30,7 @@ import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
 import org.lifecompanion.model.api.configurationcomponent.VideoUseComponentI;
 import org.lifecompanion.model.api.lifecycle.LCStateListener;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
+import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
 import org.lifecompanion.model.api.usevariable.UseVariableI;
 import org.lifecompanion.model.impl.categorizedelement.useaction.ActionExecutionResult;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 
@@ -75,6 +77,8 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
      */
     private final Map<UseActionEvent, List<Consumer<ActionExecutionResultI>>> endOfSimpleActionExecutionListener;
 
+    private final Set<BiConsumer<UseActionTriggerComponentI, UseActionEvent>> actionExecutionListeners;
+
     /**
      * To pause new action launch : useful when changing current configuration (reset in modeStart())
      */
@@ -86,6 +90,7 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
     UseActionController() {
         this.nextSimpleActionExecutionListener = new HashMap<>();
         this.endOfSimpleActionExecutionListener = new HashMap<>();
+        this.actionExecutionListeners = new HashSet<>();
         for (UseActionEvent event : UseActionEvent.values()) {
             this.nextSimpleActionExecutionListener.put(event, new ArrayList<>());
             this.endOfSimpleActionExecutionListener.put(event, new ArrayList<>());
@@ -100,6 +105,14 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
             }
             this.executeSimpleOn(generator, UseActionEvent.EVENT, variablesMap, callback);
         };
+    }
+
+    public void addActionExecutionListener(BiConsumer<UseActionTriggerComponentI, UseActionEvent> listener) {
+        actionExecutionListeners.add(listener);
+    }
+
+    public void removeActionExecutionListener(BiConsumer<UseActionTriggerComponentI, UseActionEvent> listener) {
+        actionExecutionListeners.remove(listener);
     }
 
     // Class part : "Properties"
@@ -154,7 +167,7 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
         if (!this.pauseActionLaunch) {
             this.threadPool.submit(() -> {
                 try {
-                    element.eventFired(ActionEventType.START,event);
+                    element.eventFired(ActionEventType.START, event);
                     for (BaseUseActionI<?> action : getActionListCopy(element, event)) {
                         if (!action.isSimple()) {
                             action.eventStarts(event);
@@ -177,7 +190,7 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
     public void endEventOn(final UseActionTriggerComponentI element, final UseActionEvent event, final Map<String, UseVariableI<?>> variables) {
         final Runnable executedEndEvent = () -> {
             try {
-                element.eventFired(ActionEventType.END,event);
+                element.eventFired(ActionEventType.END, event);
                 for (BaseUseActionI<?> action : getActionListCopy(element, event)) {
                     if (!action.isSimple()) {
                         action.eventEnds(event);
@@ -190,7 +203,8 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
         if (threadPool != null) {
             this.threadPool.submit(executedEndEvent);
         } else {
-            LOGGER.warn("Will execute endEventOn on {} in current Thread because thread pool was disposed. This may have happened because the event ends was fired after mode changed to config...", element);
+            LOGGER.warn("Will execute endEventOn on {} in current Thread because thread pool was disposed. This may have happened because the event ends was fired after mode changed to config...",
+                    element);
             executedEndEvent.run();
         }
     }
@@ -217,11 +231,17 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
      * @param callback    callback called once action are executed
      * @param inNewThread to execute action in another thread, most of the time it should be true because we don't want to block action execution caller.
      */
-    public void executeSimpleOn(final UseActionTriggerComponentI element, final UseActionEvent event, final Map<String, UseVariableI<?>> variables, final boolean inNewThread, final Consumer<ActionExecutionResultI> callback) {
+    public void executeSimpleOn(final UseActionTriggerComponentI element,
+                                final UseActionEvent event,
+                                final Map<String, UseVariableI<?>> variables,
+                                final boolean inNewThread,
+                                final Consumer<ActionExecutionResultI> callback) {
         this.executeSimpleActionsInternal(element, element.getActionManager().componentActions().get(event), event, variables, callback, inNewThread);
     }
 
-    public void executeSimpleDetachedActionsInNewThread(final UseActionTriggerComponentI useActionTriggerComponent, List<BaseUseActionI<UseActionTriggerComponentI>> actions, final Consumer<ActionExecutionResultI> callback) {
+    public void executeSimpleDetachedActionsInNewThread(final UseActionTriggerComponentI useActionTriggerComponent,
+                                                        List<BaseUseActionI<UseActionTriggerComponentI>> actions,
+                                                        final Consumer<ActionExecutionResultI> callback) {
         // Attach to parent component
         actions.forEach(action -> action.parentComponentProperty().set(useActionTriggerComponent));
         // Execute, detach and call callback
@@ -231,7 +251,12 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
         }, true);
     }
 
-    private void executeSimpleActionsInternal(final UseActionTriggerComponentI useActionTriggerComponent, List<BaseUseActionI<?>> actions, final UseActionEvent event, final Map<String, UseVariableI<?>> variables, final Consumer<ActionExecutionResultI> callback, final boolean inNewThread) {
+    private void executeSimpleActionsInternal(final UseActionTriggerComponentI useActionTriggerComponent,
+                                              List<BaseUseActionI<?>> actions,
+                                              final UseActionEvent event,
+                                              final Map<String, UseVariableI<?>> variables,
+                                              final Consumer<ActionExecutionResultI> callback,
+                                              final boolean inNewThread) {
         if (!this.pauseActionLaunch) {
             List<Consumer<ActionExecutionResultI>> nextActionListener = this.getAndCleanNextSimpleActionListeners(event);
             // Optimization here : don't generate variables if not needed (= no action)
@@ -239,7 +264,7 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
             Runnable actionExecutable = () -> {
                 ActionExecutionResultI result = new ActionExecutionResult(true);
                 try {
-                    useActionTriggerComponent.eventFired(ActionEventType.SIMPLE,event);
+                    useActionTriggerComponent.eventFired(ActionEventType.SIMPLE, event);
                     result = executeActions(event, actions, finalVariables);
                 } catch (Throwable t) {
                     this.LOGGER.error("Error on simple use action execution", t);
@@ -257,6 +282,16 @@ public enum UseActionController implements LCStateListener, ModeListenerI {
                     }
                 }
             };
+            // Fire listener
+            try {
+                for (BiConsumer<UseActionTriggerComponentI, UseActionEvent> listener : this.actionExecutionListeners) {
+                    listener.accept(useActionTriggerComponent, event);
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Error on action execution listener", t);
+            }
+
+            // Launch
             if (inNewThread) {
                 this.threadPool.submit(actionExecutable);
             } else {
