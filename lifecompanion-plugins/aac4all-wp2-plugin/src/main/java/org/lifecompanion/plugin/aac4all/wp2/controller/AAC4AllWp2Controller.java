@@ -77,6 +77,7 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
 
                 HashSet<Character> acceptedCharact = new HashSet<>(charsPreviousLine.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()));
                 List<Character> predict = LCCharPredictor.INSTANCE.predict(WritingStateController.INSTANCE.textBeforeCaretProperty().get(), acceptedCharact.size(), acceptedCharact);
+                LinkedList<Character> charForKeys = new LinkedList<>(acceptedCharact);
 
                 //modifing the line with character predictionwha
                 int indexPosition = 0; // for save index of prediction for RéoLoc keys
@@ -84,7 +85,16 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
                     GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(gridComponent, i);
                     if (gridPartComponent instanceof GridPartKeyComponentI key) {
                         if (key.keyOptionProperty().get() instanceof AAC4AllKeyOptionReolocL aac4AllKeyOptionReolocL) {
-                            aac4AllKeyOptionReolocL.predictionProperty().set(String.valueOf(predict.get(i - indexPosition)));
+                            // There is a prediction
+                            if (i - indexPosition < predict.size()) {
+                                Character pred = predict.get(i - indexPosition);
+                                charForKeys.remove(pred);
+                                aac4AllKeyOptionReolocL.predictionProperty().set(String.valueOf(pred));
+                            }
+                            // No prediction: take char left
+                            else {
+                                aac4AllKeyOptionReolocL.predictionProperty().set(String.valueOf(charForKeys.poll()));
+                            }
                         } else indexPosition++;
                     }
                 }
