@@ -16,16 +16,16 @@ import org.lifecompanion.controller.usevariable.UseVariableController;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.framework.commons.utils.lang.StringUtils;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
-import org.lifecompanion.model.api.configurationcomponent.GridComponentI;
-import org.lifecompanion.model.api.configurationcomponent.GridPartComponentI;
-import org.lifecompanion.model.api.configurationcomponent.GridPartKeyComponentI;
-import org.lifecompanion.model.api.configurationcomponent.LCConfigurationI;
+import org.lifecompanion.model.api.categorizedelement.useaction.UseActionManagerI;
+import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
+import org.lifecompanion.model.api.configurationcomponent.*;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2Plugin;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
 import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
+import org.lifecompanion.plugin.aac4all.wp2.model.useaction.SetEvaValueUseAction;
 import tobii.Tobii;
 
 
@@ -47,6 +47,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 
 public enum AAC4AllWp2EvaluationController implements ModeListenerI {
@@ -118,7 +119,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> scheduledEyetrackingTask;
 
-    private ChangeListener highlightCase = new javafx.beans.value.ChangeListener<GridPartComponentI>() {
+    private ChangeListener highlightKey = new javafx.beans.value.ChangeListener<GridPartComponentI>() {
         @Override
         public void changed(ObservableValue<? extends GridPartComponentI> observable, GridPartComponentI oldValue, GridPartComponentI newValue) {
             if (newValue != null) {
@@ -128,21 +129,51 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             }
         }
     };
-    private BiConsumer<GridComponentI, ComponentToScanI> validationRow = new BiConsumer<GridComponentI, ComponentToScanI>() {
+    private Consumer<ComponentToScanI> highlightRow = new Consumer<ComponentToScanI>() {
         @Override
-        public void accept(GridComponentI gridComponentI, ComponentToScanI componentToScanI) {
-            if (componentToScanI != null) {
-                String rowValues = "";
-                for (int i = 0; i < componentToScanI.getComponents().size(); i++) {// attention car pout l'espace on a Case(1,1) on pourrait le remplavcer à la main par _ ou par " " par exemple
-                    rowValues = rowValues + componentToScanI.getPartIn(gridComponentI, i).nameProperty().getValue() + "-";
+        public void accept(ComponentToScanI rowScanned) {
+            String rowValues = "";
+            if (rowScanned != null) {
+                for (int i = 0; i < rowScanned.getComponents().size(); i++) {// attention car pout l'espace on a Case(1,1) on pourrait le remplavcer à la main par _ ou par " " par exemple
+                    rowValues = rowScanned.getPartIn(configuration.selectionModeProperty().get().currentGridProperty().get(), i).nameProperty().getValue() + "-";
+                    //rowValues = rowValues + rowScanned.getPartIn(gridComponentI, i).nameProperty().getValue() + "-";
                 }
-                ValidationLog log = new ValidationLog(rowValues, componentToScanI.getIndex());
-                currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.VALIDATION, log));
+                HighLightLog log = new HighLightLog(rowValues, rowScanned.getIndex());
+                currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.HIGHLIGHT, log));
+
+
             }
         }
     };
+    private BiConsumer<GridComponentI, ComponentToScanI> validationRow = new BiConsumer<GridComponentI, ComponentToScanI>() {
+            @Override
+            public void accept(GridComponentI gridComponentI, ComponentToScanI componentToScanI) {
+                if (componentToScanI != null) {
+                    String rowValues = "";
+                    for (int i = 0; i < componentToScanI.getComponents().size(); i++) {// attention car pout l'espace on a Case(1,1) on pourrait le remplavcer à la main par _ ou par " " par exemple
+                        rowValues = rowValues + componentToScanI.getPartIn(gridComponentI, i).nameProperty().getValue() + "-";
+                    }
+                    ValidationLog log = new ValidationLog(rowValues, componentToScanI.getIndex());
+                    currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.VALIDATION, log));
+                    recordLogs();
+                }
+            }
+        };
+    private BiConsumer<UseActionTriggerComponentI, UseActionEvent> validationKey = new BiConsumer<UseActionTriggerComponentI, UseActionEvent>() {
+            @Override
+            public void accept(UseActionTriggerComponentI component, UseActionEvent event) {
+                if (component instanceof GridPartKeyComponentI && event == UseActionEvent.ACTIVATION) {
+                    GridPartKeyComponentI key = (GridPartKeyComponentI) component;
+                    ValidationLog log = new ValidationLog(key.nameProperty().getValue(),key.columnProperty().getValue());
+                    currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.VALIDATION,log));
+                    recordLogs();
+                }
 
-    @Override
+            }
+        };
+
+
+        @Override
     public void modeStart(LCConfigurationI configuration) {
         this.configuration = configuration;
         currentAAC4AllWp2PluginProperties = configuration.getPluginConfigProperties(AAC4AllWp2Plugin.ID, AAC4AllWp2PluginProperties.class);
@@ -233,7 +264,6 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         if (!resultFile.getParentFile().exists()) resultFile.getParentFile().mkdirs();
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultFile))) {
             writer.write(gson.toJson(currentEvaluation));
-            //writer.write(JsonHelper.GSON.toJson(currentEvaluation));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -241,10 +271,10 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     public void nextDailyTraining() {
         currentEvaluation.getEvaluations().add(currentKeyboardEvaluation);
-
         recordLogs();
-
         currentKeyboardEvaluation = null;
+
+        //TODO : vider la couleur des EVA --> emptyAllColors();
 
         if (!goToNextKeyboardToEvaluate()) {
             SelectionModeController.INSTANCE.goToGridPart(endGrid);
@@ -256,11 +286,12 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     public void setEvaFatigueScore(int score) {
         currentKeyboardEvaluation.setFatigueScore(score);
+        recordLogs();
         System.out.println("Fatigue avec score de " + currentKeyboardEvaluation.getFatigueScore());
     }
-
     public void setEvaSatisfactionScore(Integer score) {
         currentKeyboardEvaluation.setSatisfactionScore(score);
+        recordLogs();
         System.out.println("Satisfaction avec score de " + currentKeyboardEvaluation.getSatisfactionScore());
 
     }
@@ -271,18 +302,11 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         if (currentKeyboardEvaluation != null) {
 
             SelectionModeController.INSTANCE.addScannedPartChangedListeners(validationRow);
-            SelectionModeController.INSTANCE.currentOverPartProperty().addListener(highlightCase);
+            SelectionModeController.INSTANCE.currentOverPartProperty().addListener(highlightKey);
+            UseActionController.INSTANCE.addActionExecutionListener(validationKey);
+            SelectionModeController.INSTANCE.addOverScannedPartChangedListener(highlightRow);
             // TODO : penser à supprimer les deux nouveaux listeners lorsqu'on termine le log
-            SelectionModeController.INSTANCE.addOverScannedPartChangedListener(rowScanned -> {
-                if (rowScanned != null)
-                    System.out.println("Scan de la ligne avec " + rowScanned.getComponents().size() + " éléments");
-            });
-            UseActionController.INSTANCE.addActionExecutionListener((component, event) -> {
-                if (component instanceof GridPartKeyComponentI && event == UseActionEvent.ACTIVATION) {
-                    GridPartKeyComponentI key = (GridPartKeyComponentI) component;
-                    System.out.println("Case activée " + key.textContentProperty().get());
-                }
-            });
+
 
 
             scheduler = Executors.newScheduledThreadPool(1);
@@ -313,7 +337,6 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
     public void stopLogListener() {
         //TODO stopper les
 
-
         //recupérer l'état final de l'éditeur de texte avant clean
         currentSentenceEvaluation.setTextEntry(WritingStateController.INSTANCE.getLastSentence());
 
@@ -322,12 +345,16 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             scheduler.shutdown();
             System.out.println("Tâche arrêtée");
         }
-
-        currentSentenceEvaluation = null;
+        //currentSentenceEvaluation = null;
 
         SelectionModeController.INSTANCE.removeScannedPartChangedListeners(validationRow);
-        SelectionModeController.INSTANCE.currentOverPartProperty().removeListener(highlightCase);
-        // SelectionModeController.INSTANCE.removeScannedPartChangedListeners() == supprimer le log des sélections de ligne;
+        SelectionModeController.INSTANCE.currentOverPartProperty().removeListener(highlightKey);
+        UseActionController.INSTANCE.removeActionExecutionListener(validationKey);
+        SelectionModeController.INSTANCE.addOverScannedPartChangedListener(highlightRow);
+
+
+
+
     }
 
 
@@ -341,6 +368,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         currentRandomIndex = 0;
         currentEvaluation = new WP2Evaluation(LocalDateTime.now(), patientID.toString());
         goToNextKeyboardToEvaluate();
+        recordLogs();
 
     }
 
