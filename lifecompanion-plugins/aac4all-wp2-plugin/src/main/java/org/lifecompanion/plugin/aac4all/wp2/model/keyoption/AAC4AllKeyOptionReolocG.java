@@ -21,6 +21,6 @@ package org.lifecompanion.plugin.aac4all.wp2.model.keyoption;
 
 public class AAC4AllKeyOptionReolocG extends AbstractAAC4AllKeyOption {
     public AAC4AllKeyOptionReolocG() {
-        this.optionNameId = "aac4all.wp2.plugin.current.word.key.option.name";
+        this.optionNameId = "aac4all.wp2.plugin.current.word.key.option.RéoLocG.name";
     }
 }
