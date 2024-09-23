@@ -63,12 +63,8 @@ public class SetEvaValueUseActionConfigView extends VBox implements UseActionCon
     }
 
     public void editStarts(final SetEvaValueUseAction action, final ObservableList<UseVariableDefinitionI> possibleVariables) {
-
         this.comboBoxEvaScoreType.setValue(action.getEvaScoreType());
         this.comboBoxEvaCategoryType.setValue(action.getEvaCategoryType());
-
-
-
     }
 
     public void editEnds(final SetEvaValueUseAction action) {

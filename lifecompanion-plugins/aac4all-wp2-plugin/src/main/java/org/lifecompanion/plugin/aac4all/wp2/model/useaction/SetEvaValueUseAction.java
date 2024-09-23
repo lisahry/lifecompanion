@@ -94,14 +94,10 @@ public class SetEvaValueUseAction extends SimpleUseActionImpl<UseActionTriggerCo
         if (this.evaCategoryType.get() != null) {
             if (evaCategoryType.get() == EvaCategoryType.FATIGUE) {
                 if (evaScoreType.get() != null) {
-                    // TODO
                     updateColor();
-                    //System.out.println("Fatigue avec score de "+evaScoreType.get().getScore());
                     AAC4AllWp2EvaluationController.INSTANCE.setEvaFatigueScore(evaScoreType.get().getScore());
                 }
             } else if (evaCategoryType.get() == EvaCategoryType.SATISFACTION) {
-                // TODO
-                // System.out.println("Satisfaction avec score de "+ evaScoreType.get().getScore());
                 updateColor();
                 AAC4AllWp2EvaluationController.INSTANCE.setEvaSatisfactionScore(evaScoreType.get().getScore());
             }
@@ -110,10 +106,11 @@ public class SetEvaValueUseAction extends SimpleUseActionImpl<UseActionTriggerCo
 
     private void updateColor() {
         emptyAllColors();
-        setColorOn(parentComponentProperty().get(), Color.RED);
+        setColorOn(parentComponentProperty().get(), Color.CYAN);
     }
 
-    private void emptyAllColors() {
+    /*  même méthode que dans AAC4AllWp2EvaluationController   */
+    public void emptyAllColors() {
         UseActionTriggerComponentI parentComp = parentComponentProperty().get();
         if (parentComp != null && parentComp.configurationParentProperty().get() != null) {
             LCConfigurationI configuration = parentComp.configurationParentProperty().get();
