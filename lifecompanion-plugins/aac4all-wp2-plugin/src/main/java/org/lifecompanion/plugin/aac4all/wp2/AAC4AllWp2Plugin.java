@@ -34,7 +34,10 @@ public class AAC4AllWp2Plugin implements PluginI {
 
     @Override
     public String[] getDefaultConfigurations(String languageCode) {
-        return new String[]{"/configurations/Configuration RéoLoc Training.lcc"};
+        return new String[]{"/configurations/Configuration RéoLoc Training.lcc",
+                "/configurations/Configuration RéoLoc Evaluation.lcc",
+                "/configurations/Configuration CurSta Training.lcc",
+                "/configurations/Configuration CurSta Evaluation.lcc"};
     }
     //========================================================================
 

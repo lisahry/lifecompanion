@@ -7,7 +7,7 @@ public class WP2KeyboardEvaluation {
     private KeyboardType type;
     private int fatigueScore;
     private int satisfactionScore;
-    private List<WP2SentenceEvaluation> sentence = new ArrayList<>();
+    private List<WP2SentenceEvaluation> sentences = new ArrayList<>();
 
     public WP2KeyboardEvaluation(KeyboardType type) {
         this.type = type;
@@ -30,7 +30,7 @@ public class WP2KeyboardEvaluation {
     }
 
     public List<WP2SentenceEvaluation> getSentenceLogs() {
-        return sentence;
+        return sentences;
     }
 
 }
