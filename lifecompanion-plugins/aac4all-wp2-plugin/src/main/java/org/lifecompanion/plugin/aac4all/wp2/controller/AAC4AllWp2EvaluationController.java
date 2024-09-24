@@ -21,11 +21,13 @@ import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTrigger
 import org.lifecompanion.model.api.configurationcomponent.*;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
 import org.lifecompanion.model.api.selectionmode.ComponentToScanI;
+import org.lifecompanion.model.api.selectionmode.SelectionModeI;
 import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2Plugin;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
 import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
 import org.lifecompanion.plugin.aac4all.wp2.model.useaction.SetEvaValueUseAction;
+import org.lifecompanion.util.model.SelectionModeUtils;
 import tobii.Tobii;
 
 
@@ -55,7 +57,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     private Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()).setPrettyPrinting().create();
 
-    private final long TRAINING_DURATION_MS = (long) 20 * 1000; //20 sec à passer en 10 min
+    private final long TRAINING_DURATION_MS = (long) 4 * 1000; //20 sec à passer en 10 min
     private final long EVALUATION_DURATION_MS = (long) 15 * 60 * 1000;//15 min
 
     private boolean evaluationMode = false;
@@ -274,9 +276,21 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
         recordLogs();
         currentKeyboardEvaluation = null;
 
-        //TODO : vider la couleur des EVA --> emptyAllColors();
+        //emptyAllColors();
+        SelectionModeI selectionMode = configuration.selectionModeProperty().get();
+        List<ComponentToScanI> rows = null;
+        if (selectionMode != null && selectionMode.currentGridProperty().get() != null) {
+            rows = SelectionModeUtils.getRowColumnScanningComponents(selectionMode.currentGridProperty().get(), false);
+            for (int i = 0; i < rows.size(); i++) {
+                ComponentToScanI selectedComponentToScan = SelectionModeUtils.getRowColumnScanningComponents(selectionMode.currentGridProperty().get(), false).get(i);
+                for (int j = 0; j < selectedComponentToScan.getComponents().size(); j++) {
+                    GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(selectionMode.currentGridProperty().get(), j);//les touches ?
+                    gridPartComponent.getKeyStyle().backgroundColorProperty().forced().setValue(null);
+                }
+            }
+        }
 
-        if (!goToNextKeyboardToEvaluate()) {
+            if (!goToNextKeyboardToEvaluate()) {
             SelectionModeController.INSTANCE.goToGridPart(endGrid);
         } else {
             SelectionModeController.INSTANCE.goToGridPart(keyboardConsigne);

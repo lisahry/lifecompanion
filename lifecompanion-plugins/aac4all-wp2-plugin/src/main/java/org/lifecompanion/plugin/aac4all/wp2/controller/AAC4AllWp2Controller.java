@@ -100,7 +100,7 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
     private Map<AAC4AllKeyOptionReolocL, String> previousLine;
 
     public void partScanComponentChanged(GridComponentI gridComponent, ComponentToScanI selectedComponentToScan) {
-        System.out.println("Scanned part changed " + gridComponent + " : " + selectedComponentToScan);
+        //System.out.println("Scanned part changed " + gridComponent + " : " + selectedComponentToScan);
         FXThreadUtils.runOnFXThread(() -> {
             if (selectedComponentToScan == null) {
                 // Should reset previous line to default configuration
