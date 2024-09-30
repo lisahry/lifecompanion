@@ -52,14 +52,12 @@ public enum AAC4AllWp2Controller implements ModeListenerI {
 
                         //saving the configuration of the line.
                         for (int j = 0; j < selectedComponentToScan.getComponents().size(); j++) {
-                            GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(selectionMode.currentGridProperty().get(), j);//les touches ?
-
+                            GridPartComponentI gridPartComponent = selectedComponentToScan.getPartIn(selectionMode.currentGridProperty().get(), j);
                             if (gridPartComponent instanceof GridPartKeyComponentI key) {
                                 if (key.keyOptionProperty().get() instanceof AAC4AllKeyOptionReolocG aac4AllKeyOptionReolocG) {
                                     previousLineG.put(aac4AllKeyOptionReolocG, aac4AllKeyOptionReolocG.predictionProperty().get());
                                     charsPreviousLineG = charsPreviousLineG + aac4AllKeyOptionReolocG.predictionProperty().get();
                                 }
-
                             }
                         }
                         HashSet<Character> acceptedCharact = new HashSet<>(charsPreviousLineG.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()));

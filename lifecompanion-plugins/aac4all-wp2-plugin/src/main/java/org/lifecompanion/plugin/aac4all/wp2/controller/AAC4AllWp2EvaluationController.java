@@ -6,9 +6,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.util.converter.LocalDateTimeStringConverter;
 import org.lifecompanion.controller.categorizedelement.useaction.UseActionController;
-import org.lifecompanion.controller.io.JsonHelper;
 import org.lifecompanion.controller.resource.ResourceHelper;
 import org.lifecompanion.controller.selectionmode.SelectionModeController;
 import org.lifecompanion.controller.textcomponent.WritingStateController;
@@ -16,7 +14,6 @@ import org.lifecompanion.controller.usevariable.UseVariableController;
 import org.lifecompanion.framework.commons.translation.Translation;
 import org.lifecompanion.framework.commons.utils.lang.StringUtils;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionEvent;
-import org.lifecompanion.model.api.categorizedelement.useaction.UseActionManagerI;
 import org.lifecompanion.model.api.categorizedelement.useaction.UseActionTriggerComponentI;
 import org.lifecompanion.model.api.configurationcomponent.*;
 import org.lifecompanion.model.api.lifecycle.ModeListenerI;
@@ -26,7 +23,6 @@ import org.lifecompanion.model.api.textcomponent.WritingEventSource;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2Plugin;
 import org.lifecompanion.plugin.aac4all.wp2.AAC4AllWp2PluginProperties;
 import org.lifecompanion.plugin.aac4all.wp2.model.logs.*;
-import org.lifecompanion.plugin.aac4all.wp2.model.useaction.SetEvaValueUseAction;
 import org.lifecompanion.util.model.SelectionModeUtils;
 import tobii.Tobii;
 
@@ -39,7 +35,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -57,7 +52,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
 
     private Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()).setPrettyPrinting().create();
 
-    private final long TRAINING_DURATION_MS = (long) 4 * 1000; //20 sec à passer en 10 min
+    private final long TRAINING_DURATION_MS = (long) 10 * 60 * 1000; //20 sec à passer en 10 min
     private final long EVALUATION_DURATION_MS = (long) 15 * 60 * 1000;//15 min
 
     private boolean evaluationMode = false;
@@ -137,8 +132,8 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
             String rowValues = "";
             if (rowScanned != null) {
                 for (int i = 0; i < rowScanned.getComponents().size(); i++) {// attention car pout l'espace on a Case(1,1) on pourrait le remplavcer à la main par _ ou par " " par exemple
-                    rowValues = rowScanned.getPartIn(configuration.selectionModeProperty().get().currentGridProperty().get(), i).nameProperty().getValue() + "-";
-                    //rowValues = rowValues + rowScanned.getPartIn(gridComponentI, i).nameProperty().getValue() + "-";
+                    //rowValues = rowScanned.getPartIn(configuration.selectionModeProperty().get().currentGridProperty().get(), i).nameProperty().getValue() + "-";
+                    rowValues = rowValues + rowScanned.getPartIn(configuration.selectionModeProperty().get().currentGridProperty().get(), i).nameProperty().getValue() + "-";
                 }
                 HighLightLog log = new HighLightLog(rowValues, rowScanned.getIndex());
                 currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.HIGHLIGHT, log));
@@ -334,7 +329,7 @@ public enum AAC4AllWp2EvaluationController implements ModeListenerI {
                 System.out.println(rawGazeX);
                 System.out.println(rawGazeY);*/
                 currentSentenceEvaluation.getLogs().add(new WP2Logs(LocalDateTime.now(), LogType.EYETRACKING_POSITION, new EyetrackingPosition(rawGazeX, rawGazeY)));
-            }, 0, 20, TimeUnit.SECONDS); //0, 20, TimeUnit.MILLISECONDS);
+            }, 0, 50, TimeUnit.MILLISECONDS); //0, 20, TimeUnit.MILLISECONDS);
 
 
             /*
